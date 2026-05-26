@@ -14,20 +14,24 @@
     header h1 { font-size: 1.1rem; color: #1a202c; }
     .btn-salir {
       background: none; border: 1px solid #cbd5e0;
-      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
     }
-    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
     .card {
       background: white; border-radius: 12px; padding: 1.5rem;
       box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
     }
     .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
+    .resumen { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { background: #f7fafc; border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; }
+    .stat .numero { font-size: 2rem; font-weight: 700; }
+    .stat .etiqueta { font-size: 0.8rem; color: #718096; margin-top: 0.25rem; }
+    .stat.peligro .numero     { color: #c05621; }
+    .stat.reprobando .numero  { color: #c53030; }
+    .stat.felicitacion .numero{ color: #276749; }
     .filtros { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    select, input {
-      padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
-      border-radius: 8px; font-size: 0.9rem; background: white; outline: none;
-    }
-    select:focus, input:focus { border-color: #4299e1; }
+    select { padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; background: white; outline: none; }
+    select:focus { border-color: #4299e1; }
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th {
       text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
@@ -35,9 +39,9 @@
     }
     td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
     .badge { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge.peligro    { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
-    .badge.reprobando { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
-    .badge.felicitacion { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .badge.peligro     { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
+    .badge.reprobando  { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .badge.felicitacion{ background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
     .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
     .btn-correo {
       padding: 0.5rem 1.25rem; background: #3182ce; color: white;
@@ -45,38 +49,24 @@
     }
     .btn-correo:hover { background: #2b6cb0; }
     .btn-correo:disabled { background: #a0aec0; cursor: not-allowed; }
-    .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat { background: #f7fafc; border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; }
-    .stat .numero { font-size: 2rem; font-weight: 700; }
-    .stat .etiqueta { font-size: 0.8rem; color: #718096; margin-top: 0.25rem; }
-    .stat.peligro .numero    { color: #c05621; }
-    .stat.reprobando .numero { color: #c53030; }
-    .stat.felicitacion .numero { color: #276749; }
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.4);
       display: none; align-items: center; justify-content: center; z-index: 100;
     }
     .modal-overlay.open { display: flex; }
-    .modal {
-      background: white; border-radius: 12px; padding: 1.75rem;
-      width: 90%; max-width: 540px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    }
+    .modal { background: white; border-radius: 12px; padding: 1.75rem; width: 90%; max-width: 540px; }
     .modal h3 { font-size: 1rem; margin-bottom: 1rem; }
     .modal textarea {
-      width: 100%; height: 180px; padding: 0.75rem; border: 1px solid #cbd5e0;
+      width: 100%; height: 200px; padding: 0.75rem; border: 1px solid #cbd5e0;
       border-radius: 8px; font-size: 0.9rem; resize: vertical; font-family: inherit; outline: none;
     }
     .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
-    .btn-cancelar {
-      padding: 0.5rem 1.25rem; background: none; border: 1px solid #cbd5e0;
-      border-radius: 8px; cursor: pointer; font-size: 0.9rem;
-    }
-    .checkbox-col { width: 36px; }
+    .btn-cancelar { padding: 0.5rem 1.25rem; background: none; border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer; }
     input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+    .loading { text-align: center; padding: 2rem; color: #718096; }
   </style>
 </head>
 <body>
-
 <header>
   <div>
     <h1>🏫 Sistema de Intervención</h1>
@@ -91,22 +81,21 @@
 <main>
   <div class="resumen">
     <div class="stat peligro">
-      <div class="numero" id="cnt-peligro">0</div>
+      <div class="numero" id="cnt-peligro">—</div>
       <div class="etiqueta">⚠️ En peligro</div>
     </div>
     <div class="stat reprobando">
-      <div class="numero" id="cnt-reprobando">0</div>
+      <div class="numero" id="cnt-reprobando">—</div>
       <div class="etiqueta">🔴 Reprobando</div>
     </div>
     <div class="stat felicitacion">
-      <div class="numero" id="cnt-felicitacion">0</div>
+      <div class="numero" id="cnt-felicitacion">—</div>
       <div class="etiqueta">🌟 Felicitaciones</div>
     </div>
   </div>
 
   <div class="card">
     <h2>📋 Casos reportados</h2>
-
     <div class="filtros">
       <select id="filtro-estado" onchange="renderTabla()">
         <option value="">Todos los estados</option>
@@ -120,6 +109,7 @@
       <select id="filtro-materia" onchange="renderTabla()">
         <option value="">Todas las materias</option>
       </select>
+      <button class="btn-correo" onclick="cargarReportes()" style="background:#718096;">🔄 Actualizar</button>
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
@@ -131,11 +121,13 @@
       <table>
         <thead>
           <tr>
-            <th class="checkbox-col"><input type="checkbox" id="check-all" onclick="toggleTodos()"></th>
-            <th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th>
+            <th style="width:36px;"><input type="checkbox" id="check-all" onclick="toggleTodos()"></th>
+            <th>Fecha</th><th>Maestro</th><th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th>
           </tr>
         </thead>
-        <tbody id="tabla-casos"></tbody>
+        <tbody id="tabla-casos">
+          <tr><td colspan="8" class="loading">Cargando datos...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
@@ -153,25 +145,41 @@
 </div>
 
 <script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycby1GqAiy__M9gKlcKUvDFvCRmACQX7A-SJCGwo-5AOY01387MNqbbAdst_bgQ-W1p0O/exec';
+
   const usuario = sessionStorage.getItem('usuario');
   const rol     = sessionStorage.getItem('rol');
+  const nombre  = sessionStorage.getItem('nombre');
   if (!usuario || rol !== 'advisor') window.location.href = '../index.html';
-  document.getElementById('nombre-usuario').textContent = usuario;
+  document.getElementById('nombre-usuario').textContent = nombre || usuario;
 
-  // Datos de prueba — en Fase 2 vendrán de Google Sheets
-  let casos = [
-    { alumno: 'Ana García',    grado: '2° A', materia: 'Matemáticas', estado: 'reprobando',  obs: 'No entrega tareas' },
-    { alumno: 'Luis Pérez',    grado: '1° B', materia: 'Español',     estado: 'peligro',     obs: 'Promedio 5.8' },
-    { alumno: 'María López',   grado: '2° A', materia: 'Inglés',      estado: 'felicitacion',obs: 'Mejor promedio del grupo' },
-    { alumno: 'Carlos Ruiz',   grado: '3° C', materia: 'Ciencias',    estado: 'reprobando',  obs: '' },
-    { alumno: 'Sofía Martínez',grado: '1° B', materia: 'Historia',    estado: 'peligro',     obs: 'Faltas frecuentes' },
-  ];
+  let todosLosCasos = [];
+
+  async function cargarReportes() {
+    document.getElementById('tabla-casos').innerHTML =
+      '<tr><td colspan="8" class="loading">Cargando datos...</td></tr>';
+    try {
+      const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({ accion:'obtenerReportes' }) });
+      const data = await res.json();
+      if (data.ok) {
+        todosLosCasos = data.reportes;
+        poblarFiltros();
+        renderTabla();
+        actualizarContadores();
+      }
+    } catch(e) {
+      document.getElementById('tabla-casos').innerHTML =
+        '<tr><td colspan="8" class="empty">Error al cargar datos.</td></tr>';
+    }
+  }
 
   function poblarFiltros() {
-    const grados   = [...new Set(casos.map(c => c.grado))].sort();
-    const materias = [...new Set(casos.map(c => c.materia))].sort();
+    const grados   = [...new Set(todosLosCasos.map(c => c.grado))].sort();
+    const materias = [...new Set(todosLosCasos.map(c => c.materia))].sort();
     const selG = document.getElementById('filtro-grado');
     const selM = document.getElementById('filtro-materia');
+    selG.innerHTML = '<option value="">Todos los grados</option>';
+    selM.innerHTML = '<option value="">Todas las materias</option>';
     grados.forEach(g   => { const o = document.createElement('option'); o.value = o.textContent = g;   selG.appendChild(o); });
     materias.forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m;   selM.appendChild(o); });
   }
@@ -180,7 +188,7 @@
     const fe = document.getElementById('filtro-estado').value;
     const fg = document.getElementById('filtro-grado').value;
     const fm = document.getElementById('filtro-materia').value;
-    return casos.filter(c =>
+    return todosLosCasos.filter(c =>
       (!fe || c.estado === fe) &&
       (!fg || c.grado === fg) &&
       (!fm || c.materia === fm)
@@ -188,22 +196,23 @@
   }
 
   function actualizarContadores() {
-    document.getElementById('cnt-peligro').textContent    = casos.filter(c => c.estado === 'peligro').length;
-    document.getElementById('cnt-reprobando').textContent = casos.filter(c => c.estado === 'reprobando').length;
-    document.getElementById('cnt-felicitacion').textContent = casos.filter(c => c.estado === 'felicitacion').length;
+    document.getElementById('cnt-peligro').textContent     = todosLosCasos.filter(c => c.estado === 'peligro').length;
+    document.getElementById('cnt-reprobando').textContent  = todosLosCasos.filter(c => c.estado === 'reprobando').length;
+    document.getElementById('cnt-felicitacion').textContent= todosLosCasos.filter(c => c.estado === 'felicitacion').length;
   }
 
   function renderTabla() {
-    const etiquetas = { peligro: '⚠️ En peligro', reprobando: '🔴 Reprobando', felicitacion: '🌟 Felicitación' };
+    const etiquetas = { peligro:'⚠️ En peligro', reprobando:'🔴 Reprobando', felicitacion:'🌟 Felicitación' };
     const filtrados = casosFiltrados();
     const tbody = document.getElementById('tabla-casos');
     if (filtrados.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty">No hay casos con los filtros seleccionados.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay casos registrados.</td></tr>';
     } else {
       tbody.innerHTML = filtrados.map((c, i) => `
         <tr>
           <td><input type="checkbox" class="check-caso" data-index="${i}" onchange="actualizarSeleccion()"></td>
-          <td>${c.alumno}</td><td>${c.grado}</td><td>${c.materia}</td>
+          <td style="font-size:0.8rem; color:#718096;">${c.fecha}</td>
+          <td>${c.maestro}</td><td>${c.alumno}</td><td>${c.grado}</td><td>${c.materia}</td>
           <td><span class="badge ${c.estado}">${etiquetas[c.estado]}</span></td>
           <td>${c.obs || '—'}</td>
         </tr>
@@ -239,7 +248,6 @@
       const est = c.estado === 'reprobando' ? 'está reprobando' : 'está en peligro de reprobar';
       return `• ${c.alumno} (${c.grado}) — ${c.materia} ${est}. ${c.obs}`;
     });
-
     const tipoUnico = [...new Set(datos.map(d => d.estado))];
     let asunto, intro;
     if (tipoUnico.length === 1 && tipoUnico[0] === 'felicitacion') {
@@ -249,7 +257,6 @@
       asunto = 'Intervención académica — seguimiento requerido';
       intro  = 'Le informamos que los siguientes alumnos requieren atención o intervención académica:';
     }
-
     document.getElementById('correo-preview').value =
 `Asunto: ${asunto}
 
@@ -263,27 +270,19 @@ Le invitamos a comunicarse con el advisor del grupo para coordinar una reunión 
 
 Atentamente,
 Departamento de Intervención`;
-
     document.getElementById('modal-overlay').classList.add('open');
   }
 
-  function cerrarModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
-  }
+  function cerrarModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
   function copiarCorreo() {
-    const texto = document.getElementById('correo-preview').value;
-    navigator.clipboard.writeText(texto).then(() => alert('¡Texto copiado al portapapeles!'));
+    navigator.clipboard.writeText(document.getElementById('correo-preview').value)
+      .then(() => alert('¡Texto copiado al portapapeles!'));
   }
 
-  function cerrarSesion() {
-    sessionStorage.clear();
-    window.location.href = '../index.html';
-  }
+  function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
 
-  poblarFiltros();
-  renderTabla();
-  actualizarContadores();
+  cargarReportes();
 </script>
 </body>
 </html>
