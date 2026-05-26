@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Intervención</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+    header {
+      background: white; border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 1.1rem; }
+    .btn-salir {
+      background: none; border: 1px solid #cbd5e0;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    }
+    main { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    .card {
+      background: white; border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
+    .aviso {
+      background: #ebf8ff; border: 1px solid #90cdf4; border-radius: 8px;
+      padding: 1rem; color: #2c5282; font-size: 0.9rem; line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🏫 Sistema de Intervención — Admin</h1>
+  <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+</header>
+<main>
+  <div class="card">
+    <h2>⚙️ Panel de administración</h2>
+    <div class="aviso">
+      <strong>En construcción.</strong><br>
+      Aquí podrás gestionar:<br>
+      • Lista de usuarios (maestros y advisors)<br>
+      • Grados disponibles<br>
+      • Materias disponibles<br><br>
+      Esta sección se completa en la Fase 5 del proyecto.
+    </div>
+  </div>
+</main>
+<script>
+  const usuario = sessionStorage.getItem('usuario');
+  const rol     = sessionStorage.getItem('rol');
+  if (!usuario || rol !== 'admin') window.location.href = '../index.html';
+  function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
+</script>
+</body>
+</html>
