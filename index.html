@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Escolar — Inicio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #1a202c;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.4rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #4299e1; }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #2b6cb0; }
+
+    .error {
+      color: #e53e3e;
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .version {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #a0aec0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🏫</div>
+    <h1>Sistema de Intervención</h1>
+    <p class="subtitle">Ingresa tus credenciales para continuar</p>
+
+    <div class="form-group">
+      <label for="usuario">Usuario</label>
+      <input type="text" id="usuario" placeholder="tu.nombre@escuela.edu" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+
+    <button onclick="iniciarSesion()">Ingresar</button>
+    <p class="error" id="error-msg">Usuario o contraseña incorrectos.</p>
+
+    <p class="version">v0.1 — En desarrollo</p>
+  </div>
+
+  <script>
+    // TEMPORAL: usuarios de prueba mientras conectamos la base de datos
+    const USUARIOS = {
+      "maestro1": { password: "maestro123", rol: "maestro" },
+      "advisor1":  { password: "advisor123", rol: "advisor" },
+      "admin1":    { password: "admin123",   rol: "admin" }
+    };
+
+    function iniciarSesion() {
+      const usuario  = document.getElementById('usuario').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('error-msg');
+
+      if (USUARIOS[usuario] && USUARIOS[usuario].password === password) {
+        const rol = USUARIOS[usuario].rol;
+        // Guardar sesión básica
+        sessionStorage.setItem('usuario', usuario);
+        sessionStorage.setItem('rol', rol);
+        // Redirigir según rol
+        if (rol === 'maestro')  window.location.href = 'maestro/index.html';
+        if (rol === 'advisor')  window.location.href = 'advisor/index.html';
+        if (rol === 'admin')    window.location.href = 'admin/index.html';
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    // Permitir Enter para iniciar sesión
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') iniciarSesion();
+    });
+  </script>
+</body>
+</html>
