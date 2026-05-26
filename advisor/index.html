@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vista Advisor — Intervención</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+    header {
+      background: white; border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 1.1rem; color: #1a202c; }
+    .btn-salir {
+      background: none; border: 1px solid #cbd5e0;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
+    }
+    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .card {
+      background: white; border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
+    .filtros { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    select, input {
+      padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
+      border-radius: 8px; font-size: 0.9rem; background: white; outline: none;
+    }
+    select:focus, input:focus { border-color: #4299e1; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th {
+      text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
+      color: #4a5568; font-size: 0.8rem; font-weight: 600; border-bottom: 1px solid #e2e8f0;
+    }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+    .badge { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge.peligro    { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
+    .badge.reprobando { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .badge.felicitacion { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+    .btn-correo {
+      padding: 0.5rem 1.25rem; background: #3182ce; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    }
+    .btn-correo:hover { background: #2b6cb0; }
+    .btn-correo:disabled { background: #a0aec0; cursor: not-allowed; }
+    .resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { background: #f7fafc; border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; }
+    .stat .numero { font-size: 2rem; font-weight: 700; }
+    .stat .etiqueta { font-size: 0.8rem; color: #718096; margin-top: 0.25rem; }
+    .stat.peligro .numero    { color: #c05621; }
+    .stat.reprobando .numero { color: #c53030; }
+    .stat.felicitacion .numero { color: #276749; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 12px; padding: 1.75rem;
+      width: 90%; max-width: 540px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .modal h3 { font-size: 1rem; margin-bottom: 1rem; }
+    .modal textarea {
+      width: 100%; height: 180px; padding: 0.75rem; border: 1px solid #cbd5e0;
+      border-radius: 8px; font-size: 0.9rem; resize: vertical; font-family: inherit; outline: none;
+    }
+    .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+    .btn-cancelar {
+      padding: 0.5rem 1.25rem; background: none; border: 1px solid #cbd5e0;
+      border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+    }
+    .checkbox-col { width: 36px; }
+    input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏫 Sistema de Intervención</h1>
+    <span style="font-size:0.85rem; color:#718096;">Vista: Advisor</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <span id="nombre-usuario" style="font-size:0.85rem; color:#4a5568;"></span>
+    <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</header>
+
+<main>
+  <div class="resumen">
+    <div class="stat peligro">
+      <div class="numero" id="cnt-peligro">0</div>
+      <div class="etiqueta">⚠️ En peligro</div>
+    </div>
+    <div class="stat reprobando">
+      <div class="numero" id="cnt-reprobando">0</div>
+      <div class="etiqueta">🔴 Reprobando</div>
+    </div>
+    <div class="stat felicitacion">
+      <div class="numero" id="cnt-felicitacion">0</div>
+      <div class="etiqueta">🌟 Felicitaciones</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Casos reportados</h2>
+
+    <div class="filtros">
+      <select id="filtro-estado" onchange="renderTabla()">
+        <option value="">Todos los estados</option>
+        <option value="peligro">⚠️ En peligro</option>
+        <option value="reprobando">🔴 Reprobando</option>
+        <option value="felicitacion">🌟 Felicitación</option>
+      </select>
+      <select id="filtro-grado" onchange="renderTabla()">
+        <option value="">Todos los grados</option>
+      </select>
+      <select id="filtro-materia" onchange="renderTabla()">
+        <option value="">Todas las materias</option>
+      </select>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+      <span id="seleccionados-label" style="font-size:0.85rem; color:#718096;">Selecciona casos para generar correo</span>
+      <button class="btn-correo" id="btn-generar" onclick="abrirModal()" disabled>✉️ Generar correo</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-col"><input type="checkbox" id="check-all" onclick="toggleTodos()"></th>
+            <th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-casos"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>✉️ Vista previa del correo</h3>
+    <textarea id="correo-preview" readonly></textarea>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="cerrarModal()">Cerrar</button>
+      <button class="btn-correo" onclick="copiarCorreo()">📋 Copiar texto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const usuario = sessionStorage.getItem('usuario');
+  const rol     = sessionStorage.getItem('rol');
+  if (!usuario || rol !== 'advisor') window.location.href = '../index.html';
+  document.getElementById('nombre-usuario').textContent = usuario;
+
+  // Datos de prueba — en Fase 2 vendrán de Google Sheets
+  let casos = [
+    { alumno: 'Ana García',    grado: '2° A', materia: 'Matemáticas', estado: 'reprobando',  obs: 'No entrega tareas' },
+    { alumno: 'Luis Pérez',    grado: '1° B', materia: 'Español',     estado: 'peligro',     obs: 'Promedio 5.8' },
+    { alumno: 'María López',   grado: '2° A', materia: 'Inglés',      estado: 'felicitacion',obs: 'Mejor promedio del grupo' },
+    { alumno: 'Carlos Ruiz',   grado: '3° C', materia: 'Ciencias',    estado: 'reprobando',  obs: '' },
+    { alumno: 'Sofía Martínez',grado: '1° B', materia: 'Historia',    estado: 'peligro',     obs: 'Faltas frecuentes' },
+  ];
+
+  function poblarFiltros() {
+    const grados   = [...new Set(casos.map(c => c.grado))].sort();
+    const materias = [...new Set(casos.map(c => c.materia))].sort();
+    const selG = document.getElementById('filtro-grado');
+    const selM = document.getElementById('filtro-materia');
+    grados.forEach(g   => { const o = document.createElement('option'); o.value = o.textContent = g;   selG.appendChild(o); });
+    materias.forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m;   selM.appendChild(o); });
+  }
+
+  function casosFiltrados() {
+    const fe = document.getElementById('filtro-estado').value;
+    const fg = document.getElementById('filtro-grado').value;
+    const fm = document.getElementById('filtro-materia').value;
+    return casos.filter(c =>
+      (!fe || c.estado === fe) &&
+      (!fg || c.grado === fg) &&
+      (!fm || c.materia === fm)
+    );
+  }
+
+  function actualizarContadores() {
+    document.getElementById('cnt-peligro').textContent    = casos.filter(c => c.estado === 'peligro').length;
+    document.getElementById('cnt-reprobando').textContent = casos.filter(c => c.estado === 'reprobando').length;
+    document.getElementById('cnt-felicitacion').textContent = casos.filter(c => c.estado === 'felicitacion').length;
+  }
+
+  function renderTabla() {
+    const etiquetas = { peligro: '⚠️ En peligro', reprobando: '🔴 Reprobando', felicitacion: '🌟 Felicitación' };
+    const filtrados = casosFiltrados();
+    const tbody = document.getElementById('tabla-casos');
+    if (filtrados.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No hay casos con los filtros seleccionados.</td></tr>';
+    } else {
+      tbody.innerHTML = filtrados.map((c, i) => `
+        <tr>
+          <td><input type="checkbox" class="check-caso" data-index="${i}" onchange="actualizarSeleccion()"></td>
+          <td>${c.alumno}</td><td>${c.grado}</td><td>${c.materia}</td>
+          <td><span class="badge ${c.estado}">${etiquetas[c.estado]}</span></td>
+          <td>${c.obs || '—'}</td>
+        </tr>
+      `).join('');
+    }
+    actualizarSeleccion();
+  }
+
+  function toggleTodos() {
+    const todos = document.getElementById('check-all').checked;
+    document.querySelectorAll('.check-caso').forEach(c => c.checked = todos);
+    actualizarSeleccion();
+  }
+
+  function actualizarSeleccion() {
+    const n = document.querySelectorAll('.check-caso:checked').length;
+    document.getElementById('seleccionados-label').textContent =
+      n === 0 ? 'Selecciona casos para generar correo' : `${n} caso(s) seleccionado(s)`;
+    document.getElementById('btn-generar').disabled = n === 0;
+  }
+
+  function seleccionadosData() {
+    const filtrados = casosFiltrados();
+    return [...document.querySelectorAll('.check-caso:checked')]
+      .map(c => filtrados[parseInt(c.dataset.index)]);
+  }
+
+  function abrirModal() {
+    const datos = seleccionadosData();
+    const lineas = datos.map(c => {
+      if (c.estado === 'felicitacion')
+        return `• ${c.alumno} (${c.grado}) — ${c.materia}: desempeño sobresaliente. ${c.obs}`;
+      const est = c.estado === 'reprobando' ? 'está reprobando' : 'está en peligro de reprobar';
+      return `• ${c.alumno} (${c.grado}) — ${c.materia} ${est}. ${c.obs}`;
+    });
+
+    const tipoUnico = [...new Set(datos.map(d => d.estado))];
+    let asunto, intro;
+    if (tipoUnico.length === 1 && tipoUnico[0] === 'felicitacion') {
+      asunto = 'Reconocimiento al desempeño académico';
+      intro  = 'Me complace informarle que los siguientes alumnos han mostrado un desempeño sobresaliente:';
+    } else {
+      asunto = 'Intervención académica — seguimiento requerido';
+      intro  = 'Le informamos que los siguientes alumnos requieren atención o intervención académica:';
+    }
+
+    document.getElementById('correo-preview').value =
+`Asunto: ${asunto}
+
+Estimado/a padre/madre de familia:
+
+${intro}
+
+${lineas.join('\n')}
+
+Le invitamos a comunicarse con el advisor del grupo para coordinar una reunión de seguimiento.
+
+Atentamente,
+Departamento de Intervención`;
+
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function copiarCorreo() {
+    const texto = document.getElementById('correo-preview').value;
+    navigator.clipboard.writeText(texto).then(() => alert('¡Texto copiado al portapapeles!'));
+  }
+
+  function cerrarSesion() {
+    sessionStorage.clear();
+    window.location.href = '../index.html';
+  }
+
+  poblarFiltros();
+  renderTabla();
+  actualizarContadores();
+</script>
+</body>
+</html>
