@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — Intervención</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
@@ -13,19 +14,24 @@
       padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
     }
     header h1 { font-size: 1.1rem; color: #1a202c; }
+
+    .header-right { display: flex; align-items: center; gap: 1.5rem; }
+
+    .reloj {
+      text-align: right; line-height: 1.2;
+    }
+    .reloj .hora { font-size: 1.3rem; font-weight: 700; color: #2d3748; font-variant-numeric: tabular-nums; }
+    .reloj .fecha { font-size: 0.75rem; color: #718096; }
+
     .btn-salir {
       background: none; border: 1px solid #cbd5e0;
       padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
     }
     .btn-salir:hover { background: #f7fafc; }
 
-    main { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+    main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
 
-    /* Pestañas */
-    .tabs {
-      display: flex; gap: 0; margin-bottom: 0;
-      border-bottom: 2px solid #e2e8f0;
-    }
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 0; }
     .tab {
       padding: 0.75rem 1.5rem; cursor: pointer; font-size: 0.95rem;
       color: #718096; border-bottom: 2px solid transparent;
@@ -34,24 +40,17 @@
     }
     .tab:hover { color: #3182ce; }
     .tab.active { color: #3182ce; border-bottom-color: #3182ce; }
-
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* Card */
     .card {
       background: white; border-radius: 0 12px 12px 12px;
-      padding: 1.5rem; box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-      margin-bottom: 1.5rem;
+      padding: 1.5rem; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
     }
     .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
 
-    /* Formulario inline */
-    .form-inline {
-      display: flex; gap: 0.75rem; flex-wrap: wrap;
-      margin-bottom: 1.25rem; align-items: flex-end;
-    }
-    .form-inline .form-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 160px; }
+    .form-inline { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: flex-end; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 160px; }
     label { font-size: 0.8rem; font-weight: 600; color: #4a5568; }
     input, select {
       padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
@@ -59,7 +58,6 @@
     }
     input:focus, select:focus { border-color: #4299e1; }
 
-    /* Botones */
     .btn-agregar {
       padding: 0.6rem 1.25rem; background: #3182ce; color: white;
       border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
@@ -67,6 +65,21 @@
     }
     .btn-agregar:hover { background: #2b6cb0; }
     .btn-agregar:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .btn-peligro {
+      padding: 0.6rem 1.25rem; background: #e53e3e; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; white-space: nowrap;
+    }
+    .btn-peligro:hover { background: #c53030; }
+
+    .btn-secundario {
+      padding: 0.6rem 1.25rem; background: #718096; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; white-space: nowrap;
+    }
+    .btn-secundario:hover { background: #4a5568; }
+
     .btn-eliminar {
       padding: 0.3rem 0.75rem; background: none; border: 1px solid #fc8181;
       color: #e53e3e; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
@@ -78,7 +91,6 @@
     }
     .btn-editar:hover { background: #ebf8ff; }
 
-    /* Tabla */
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th {
       text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
@@ -87,41 +99,50 @@
     td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
     .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
 
-    /* Badge rol */
-    .badge-rol {
-      padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
-    }
+    .badge-rol { padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
     .badge-rol.maestro  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
     .badge-rol.advisor  { background: #faf5ff; color: #6b46c1; border: 1px solid #d6bcfa; }
     .badge-rol.admin    { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
 
-    /* Alertas */
     .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
     .alert.success { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
     .alert.error   { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .alert.info    { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
 
-    /* Modal edición */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.4);
       display: none; align-items: center; justify-content: center; z-index: 100;
     }
     .modal-overlay.open { display: flex; }
-    .modal {
-      background: white; border-radius: 12px; padding: 1.75rem;
-      width: 90%; max-width: 420px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-    }
+    .modal { background: white; border-radius: 12px; padding: 1.75rem; width: 90%; max-width: 420px; }
     .modal h3 { font-size: 1rem; margin-bottom: 1.25rem; }
     .modal .form-group { margin-bottom: 1rem; }
     .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
-    .btn-cancelar {
-      padding: 0.5rem 1.25rem; background: none;
-      border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer;
-    }
-    .btn-guardar {
-      padding: 0.5rem 1.25rem; background: #3182ce; color: white;
-      border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
-    }
+    .btn-cancelar { padding: 0.5rem 1.25rem; background: none; border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer; }
+    .btn-guardar  { padding: 0.5rem 1.25rem; background: #3182ce; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
     .btn-guardar:hover { background: #2b6cb0; }
+
+    /* Zona de importación */
+    .drop-zone {
+      border: 2px dashed #cbd5e0; border-radius: 10px; padding: 2rem;
+      text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #4299e1; background: #ebf8ff; }
+    .drop-zone p { color: #718096; font-size: 0.9rem; margin-top: 0.5rem; }
+    .drop-zone .icono { font-size: 2rem; }
+
+    .preview-tabla { max-height: 300px; overflow-y: auto; margin-bottom: 1rem; }
+
+    .stats-importacion {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .stat-box {
+      background: #f7fafc; border-radius: 8px; padding: 0.75rem; text-align: center; border: 1px solid #e2e8f0;
+    }
+    .stat-box .num  { font-size: 1.5rem; font-weight: 700; color: #3182ce; }
+    .stat-box .lbl  { font-size: 0.75rem; color: #718096; }
+
+    .filtro-grado-alumnos { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
@@ -131,24 +152,27 @@
     <h1>🏫 Sistema de Intervención</h1>
     <span style="font-size:0.85rem; color:#718096;">Vista: Administrador</span>
   </div>
-  <div style="display:flex; align-items:center; gap:1rem;">
+  <div class="header-right">
+    <div class="reloj">
+      <div class="hora" id="reloj-hora">00:00:00</div>
+      <div class="fecha" id="reloj-fecha"></div>
+    </div>
     <span id="nombre-usuario" style="font-size:0.85rem; color:#4a5568;"></span>
     <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </header>
 
 <main>
-
   <div class="alert" id="alerta"></div>
 
-  <!-- Pestañas -->
   <div class="tabs">
     <button class="tab active" onclick="cambiarTab('usuarios')">👤 Usuarios</button>
+    <button class="tab"        onclick="cambiarTab('alumnos')">🎓 Alumnos</button>
     <button class="tab"        onclick="cambiarTab('grados')">🏷️ Grados</button>
     <button class="tab"        onclick="cambiarTab('materias')">📚 Materias</button>
   </div>
 
-  <!-- ─── PESTAÑA USUARIOS ─── -->
+  <!-- ─── USUARIOS ─── -->
   <div class="tab-content active" id="tab-usuarios">
     <div class="card">
       <h2>Agregar usuario</h2>
@@ -176,21 +200,70 @@
         <button class="btn-agregar" onclick="agregarUsuario()">+ Agregar</button>
       </div>
     </div>
-
     <div class="card">
       <h2>Usuarios registrados</h2>
       <table>
-        <thead>
-          <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr>
-        </thead>
-        <tbody id="tabla-usuarios">
-          <tr><td colspan="4" class="empty">Cargando...</td></tr>
-        </tbody>
+        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr></thead>
+        <tbody id="tabla-usuarios"><tr><td colspan="4" class="empty">Cargando...</td></tr></tbody>
       </table>
     </div>
   </div>
 
-  <!-- ─── PESTAÑA GRADOS ─── -->
+  <!-- ─── ALUMNOS ─── -->
+  <div class="tab-content" id="tab-alumnos">
+
+    <div class="card">
+      <h2>📥 Importar alumnos desde Excel</h2>
+      <p style="font-size:0.85rem; color:#718096; margin-bottom:1rem;">
+        Tu archivo Excel debe tener estas columnas en orden:
+        <strong>grado, nombre, apellido, correo_alumno, correo_padres</strong>
+      </p>
+
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('input-excel').click()">
+        <div class="icono">📂</div>
+        <p>Haz clic aquí o arrastra tu archivo Excel (.xlsx)</p>
+      </div>
+      <input type="file" id="input-excel" accept=".xlsx,.xls" style="display:none" onchange="leerExcel(this)">
+
+      <div id="preview-seccion" style="display:none;">
+        <div class="stats-importacion">
+          <div class="stat-box"><div class="num" id="stat-total">0</div><div class="lbl">Total alumnos</div></div>
+          <div class="stat-box"><div class="num" id="stat-grados">0</div><div class="lbl">Grados</div></div>
+          <div class="stat-box"><div class="num" id="stat-preview">0</div><div class="lbl">Vista previa</div></div>
+        </div>
+        <div class="preview-tabla">
+          <table>
+            <thead><tr><th>Grado</th><th>Nombre</th><th>Apellido</th><th>Correo alumno</th><th>Correo padres</th></tr></thead>
+            <tbody id="tabla-preview"></tbody>
+          </table>
+        </div>
+        <div style="display:flex; gap:0.75rem;">
+          <button class="btn-agregar" onclick="confirmarImportacion()">✅ Confirmar importación</button>
+          <button class="btn-secundario" onclick="cancelarImportacion()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Lista de alumnos</h2>
+      <div style="display:flex; gap:1rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap;">
+        <select id="filtro-grado-alumnos" onchange="cargarAlumnos()" style="width:auto;">
+          <option value="">Todos los grados</option>
+        </select>
+        <span id="total-alumnos" style="font-size:0.85rem; color:#718096;"></span>
+        <button class="btn-peligro" style="margin-left:auto;" onclick="confirmarLimpiarAlumnos()">🗑 Limpiar todos los alumnos</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Grado</th><th>Nombre</th><th>Apellido</th><th>Correo alumno</th><th>Correo padres</th></tr></thead>
+          <tbody id="tabla-alumnos"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── GRADOS ─── -->
   <div class="tab-content" id="tab-grados">
     <div class="card">
       <h2>Agregar grado</h2>
@@ -202,21 +275,16 @@
         <button class="btn-agregar" onclick="agregarGrado()">+ Agregar</button>
       </div>
     </div>
-
     <div class="card">
       <h2>Grados disponibles</h2>
       <table>
-        <thead>
-          <tr><th>Grado</th><th>Acciones</th></tr>
-        </thead>
-        <tbody id="tabla-grados">
-          <tr><td colspan="2" class="empty">Cargando...</td></tr>
-        </tbody>
+        <thead><tr><th>Grado</th><th>Acciones</th></tr></thead>
+        <tbody id="tabla-grados"><tr><td colspan="2" class="empty">Cargando...</td></tr></tbody>
       </table>
     </div>
   </div>
 
-  <!-- ─── PESTAÑA MATERIAS ─── -->
+  <!-- ─── MATERIAS ─── -->
   <div class="tab-content" id="tab-materias">
     <div class="card">
       <h2>Agregar materia</h2>
@@ -228,16 +296,11 @@
         <button class="btn-agregar" onclick="agregarMateria()">+ Agregar</button>
       </div>
     </div>
-
     <div class="card">
       <h2>Materias disponibles</h2>
       <table>
-        <thead>
-          <tr><th>Materia</th><th>Acciones</th></tr>
-        </thead>
-        <tbody id="tabla-materias">
-          <tr><td colspan="2" class="empty">Cargando...</td></tr>
-        </tbody>
+        <thead><tr><th>Materia</th><th>Acciones</th></tr></thead>
+        <tbody id="tabla-materias"><tr><td colspan="2" class="empty">Cargando...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -281,7 +344,18 @@
   if (!usuario || rol !== 'admin') window.location.href = '../index.html';
   document.getElementById('nombre-usuario').textContent = nombre || usuario;
 
-  // ─── PESTAÑAS ───
+  // ── RELOJ ──────────────────────────────────────────
+  function actualizarReloj() {
+    const ahora  = new Date();
+    const hora   = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const fecha  = ahora.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('reloj-hora').textContent  = hora;
+    document.getElementById('reloj-fecha').textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  }
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+
+  // ── PESTAÑAS ───────────────────────────────────────
   function cambiarTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -289,30 +363,29 @@
     document.getElementById(`tab-${tab}`).classList.add('active');
   }
 
-  // ─── ALERTAS ───
+  // ── ALERTAS ────────────────────────────────────────
   function mostrarAlerta(msg, tipo) {
     const a = document.getElementById('alerta');
     a.textContent = msg;
     a.className = `alert ${tipo}`;
     a.style.display = 'block';
-    setTimeout(() => a.style.display = 'none', 3500);
+    setTimeout(() => a.style.display = 'none', 4000);
   }
 
-  // ─── API ───
+  // ── API ────────────────────────────────────────────
   async function api(body) {
-    const res  = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
     return res.json();
   }
 
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
   //  USUARIOS
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
   async function cargarUsuarios() {
-    const data = await api({ accion: 'obtenerUsuarios' });
+    const data  = await api({ accion: 'obtenerUsuarios' });
     const tbody = document.getElementById('tabla-usuarios');
     if (!data.ok || data.usuarios.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty">No hay usuarios registrados.</td></tr>';
-      return;
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No hay usuarios registrados.</td></tr>'; return;
     }
     tbody.innerHTML = data.usuarios.map((u, i) => `
       <tr>
@@ -320,164 +393,240 @@
         <td>${u.nombre}</td>
         <td><span class="badge-rol ${u.rol}">${u.rol}</span></td>
         <td>
-          <button class="btn-editar"   onclick="abrirEdicionUsuario(${i}, '${u.nombre}', '${u.rol}')">✏️ Editar</button>
-          <button class="btn-eliminar" onclick="eliminarUsuario(${i}, '${u.usuario}')">🗑 Eliminar</button>
+          <button class="btn-editar"   onclick="abrirEdicionUsuario(${i},'${u.nombre}','${u.rol}')">✏️ Editar</button>
+          <button class="btn-eliminar" onclick="eliminarUsuario(${i},'${u.usuario}')">🗑 Eliminar</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
   async function agregarUsuario() {
-    const nuevoUsuario = document.getElementById('new-usuario').value.trim();
-    const password     = document.getElementById('new-password').value.trim();
-    const nombre       = document.getElementById('new-nombre').value.trim();
-    const rol          = document.getElementById('new-rol').value;
-    if (!nuevoUsuario || !password || !nombre) {
-      mostrarAlerta('Por favor completa todos los campos.', 'error'); return;
-    }
-    const data = await api({ accion: 'agregarUsuario', usuario: nuevoUsuario, password, nombre, rol });
+    const u = document.getElementById('new-usuario').value.trim();
+    const p = document.getElementById('new-password').value.trim();
+    const n = document.getElementById('new-nombre').value.trim();
+    const r = document.getElementById('new-rol').value;
+    if (!u || !p || !n) { mostrarAlerta('Por favor completa todos los campos.', 'error'); return; }
+    const data = await api({ accion: 'agregarUsuario', usuario: u, password: p, nombre: n, rol: r });
     if (data.ok) {
-      mostrarAlerta('✅ Usuario agregado correctamente.', 'success');
-      document.getElementById('new-usuario').value  = '';
+      mostrarAlerta('✅ Usuario agregado.', 'success');
+      document.getElementById('new-usuario').value = '';
       document.getElementById('new-password').value = '';
-      document.getElementById('new-nombre').value   = '';
+      document.getElementById('new-nombre').value = '';
       cargarUsuarios();
-    } else {
-      mostrarAlerta(data.error || 'Error al agregar usuario.', 'error');
-    }
+    } else { mostrarAlerta(data.error || 'Error al agregar.', 'error'); }
   }
 
   function abrirEdicionUsuario(index, nombre, rol) {
-    document.getElementById('edit-index').value   = index;
-    document.getElementById('edit-nombre').value  = nombre;
-    document.getElementById('edit-password').value= '';
-    document.getElementById('edit-rol').value     = rol;
+    document.getElementById('edit-index').value    = index;
+    document.getElementById('edit-nombre').value   = nombre;
+    document.getElementById('edit-password').value = '';
+    document.getElementById('edit-rol').value      = rol;
     document.getElementById('modal-usuario').classList.add('open');
   }
 
   async function guardarEdicionUsuario() {
-    const index    = document.getElementById('edit-index').value;
-    const nombre   = document.getElementById('edit-nombre').value.trim();
-    const password = document.getElementById('edit-password').value.trim();
-    const rol      = document.getElementById('edit-rol').value;
+    const index  = document.getElementById('edit-index').value;
+    const nombre = document.getElementById('edit-nombre').value.trim();
+    const pass   = document.getElementById('edit-password').value.trim();
+    const rol    = document.getElementById('edit-rol').value;
     if (!nombre) { mostrarAlerta('El nombre no puede estar vacío.', 'error'); return; }
-    const data = await api({ accion: 'editarUsuario', index: parseInt(index), nombre, password, rol });
-    if (data.ok) {
-      mostrarAlerta('✅ Usuario actualizado.', 'success');
-      cerrarModal();
-      cargarUsuarios();
-    } else {
-      mostrarAlerta(data.error || 'Error al editar.', 'error');
-    }
+    const data = await api({ accion: 'editarUsuario', index: parseInt(index), nombre, password: pass, rol });
+    if (data.ok) { mostrarAlerta('✅ Usuario actualizado.', 'success'); cerrarModal(); cargarUsuarios(); }
+    else { mostrarAlerta(data.error || 'Error al editar.', 'error'); }
   }
 
-  async function eliminarUsuario(index, usuarioNombre) {
-    if (!confirm(`¿Eliminar al usuario "${usuarioNombre}"? Esta acción no se puede deshacer.`)) return;
+  async function eliminarUsuario(index, u) {
+    if (!confirm(`¿Eliminar al usuario "${u}"?`)) return;
     const data = await api({ accion: 'eliminarUsuario', index: parseInt(index) });
-    if (data.ok) {
-      mostrarAlerta('✅ Usuario eliminado.', 'success');
-      cargarUsuarios();
-    } else {
-      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
-    }
+    if (data.ok) { mostrarAlerta('✅ Usuario eliminado.', 'success'); cargarUsuarios(); }
+    else { mostrarAlerta(data.error || 'Error al eliminar.', 'error'); }
   }
 
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
+  //  ALUMNOS
+  // ══════════════════════════════════════════════════
+  let alumnosPreview = [];
+
+  function leerExcel(input) {
+    const archivo = input.files[0];
+    if (!archivo) return;
+    const reader  = new FileReader();
+    reader.onload = function(e) {
+      const data     = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const hoja     = workbook.Sheets[workbook.SheetNames[0]];
+      const filas    = XLSX.utils.sheet_to_json(hoja, { header: 1 });
+
+      alumnosPreview = [];
+      // Saltar fila de encabezados (fila 0)
+      for (let i = 1; i < filas.length; i++) {
+        const f = filas[i];
+        if (!f[0]) continue;
+        alumnosPreview.push({
+          grado: String(f[0]).trim(),
+          nombre: String(f[1] || '').trim(),
+          apellido: String(f[2] || '').trim(),
+          correo_alumno: String(f[3] || '').trim(),
+          correo_padres: String(f[4] || '').trim()
+        });
+      }
+
+      const grados = [...new Set(alumnosPreview.map(a => a.grado))];
+      document.getElementById('stat-total').textContent   = alumnosPreview.length;
+      document.getElementById('stat-grados').textContent  = grados.length;
+      document.getElementById('stat-preview').textContent = Math.min(alumnosPreview.length, 5);
+
+      // Mostrar primeras 5 filas como preview
+      const tbody = document.getElementById('tabla-preview');
+      tbody.innerHTML = alumnosPreview.slice(0, 5).map(a => `
+        <tr>
+          <td>${a.grado}</td><td>${a.nombre}</td><td>${a.apellido}</td>
+          <td>${a.correo_alumno}</td><td>${a.correo_padres}</td>
+        </tr>`).join('');
+
+      document.getElementById('preview-seccion').style.display = 'block';
+    };
+    reader.readAsArrayBuffer(archivo);
+  }
+
+  async function confirmarImportacion() {
+    if (alumnosPreview.length === 0) { mostrarAlerta('No hay datos para importar.', 'error'); return; }
+    mostrarAlerta('Importando alumnos...', 'info');
+    const data = await api({ accion: 'importarAlumnos', alumnos: alumnosPreview });
+    if (data.ok) {
+      mostrarAlerta(`✅ ${data.total} alumnos importados correctamente.`, 'success');
+      cancelarImportacion();
+      cargarAlumnos();
+      poblarFiltroGrados();
+    } else { mostrarAlerta(data.error || 'Error al importar.', 'error'); }
+  }
+
+  function cancelarImportacion() {
+    alumnosPreview = [];
+    document.getElementById('preview-seccion').style.display = 'none';
+    document.getElementById('input-excel').value = '';
+  }
+
+  async function cargarAlumnos() {
+    const grado = document.getElementById('filtro-grado-alumnos').value;
+    const data  = await api({ accion: 'obtenerAlumnos', grado });
+    const tbody = document.getElementById('tabla-alumnos');
+    document.getElementById('total-alumnos').textContent = `${data.alumnos?.length || 0} alumnos`;
+    if (!data.ok || data.alumnos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">No hay alumnos registrados.</td></tr>'; return;
+    }
+    tbody.innerHTML = data.alumnos.map(a => `
+      <tr>
+        <td>${a.grado}</td><td>${a.nombre}</td><td>${a.apellido}</td>
+        <td>${a.correo_alumno}</td><td>${a.correo_padres}</td>
+      </tr>`).join('');
+  }
+
+  async function poblarFiltroGrados() {
+    const data = await api({ accion: 'obtenerGrados' });
+    const sel  = document.getElementById('filtro-grado-alumnos');
+    sel.innerHTML = '<option value="">Todos los grados</option>';
+    (data.grados || []).forEach(g => {
+      const o = document.createElement('option');
+      o.value = o.textContent = g;
+      sel.appendChild(o);
+    });
+  }
+
+  async function confirmarLimpiarAlumnos() {
+    if (!confirm('¿Estás seguro de que quieres eliminar TODOS los alumnos? Esta acción no se puede deshacer.')) return;
+    const data = await api({ accion: 'limpiarAlumnos' });
+    if (data.ok) { mostrarAlerta('✅ Lista de alumnos limpiada.', 'success'); cargarAlumnos(); }
+    else { mostrarAlerta('Error al limpiar.', 'error'); }
+  }
+
+  // ══════════════════════════════════════════════════
   //  GRADOS
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
   async function cargarGrados() {
     const data  = await api({ accion: 'obtenerGrados' });
     const tbody = document.getElementById('tabla-grados');
     if (!data.ok || data.grados.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay grados registrados.</td></tr>';
-      return;
+      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay grados.</td></tr>'; return;
     }
     tbody.innerHTML = data.grados.map((g, i) => `
       <tr>
         <td>${g}</td>
-        <td><button class="btn-eliminar" onclick="eliminarGrado(${i}, '${g}')">🗑 Eliminar</button></td>
-      </tr>
-    `).join('');
+        <td><button class="btn-eliminar" onclick="eliminarGrado(${i},'${g}')">🗑 Eliminar</button></td>
+      </tr>`).join('');
   }
 
   async function agregarGrado() {
-    const grado = document.getElementById('new-grado').value.trim();
-    if (!grado) { mostrarAlerta('Escribe el nombre del grado.', 'error'); return; }
-    const data  = await api({ accion: 'agregarGrado', grado });
-    if (data.ok) {
-      mostrarAlerta('✅ Grado agregado.', 'success');
-      document.getElementById('new-grado').value = '';
-      cargarGrados();
-    } else {
-      mostrarAlerta(data.error || 'Error al agregar grado.', 'error');
-    }
+    const g = document.getElementById('new-grado').value.trim();
+    if (!g) { mostrarAlerta('Escribe el nombre del grado.', 'error'); return; }
+    const data = await api({ accion: 'agregarGrado', grado: g });
+    if (data.ok) { mostrarAlerta('✅ Grado agregado.', 'success'); document.getElementById('new-grado').value = ''; cargarGrados(); }
+    else { mostrarAlerta(data.error || 'Error.', 'error'); }
   }
 
-  async function eliminarGrado(index, grado) {
-    if (!confirm(`¿Eliminar el grado "${grado}"?`)) return;
+  async function eliminarGrado(index, g) {
+    if (!confirm(`¿Eliminar el grado "${g}"?`)) return;
     const data = await api({ accion: 'eliminarGrado', index: parseInt(index) });
-    if (data.ok) {
-      mostrarAlerta('✅ Grado eliminado.', 'success');
-      cargarGrados();
-    } else {
-      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
-    }
+    if (data.ok) { mostrarAlerta('✅ Grado eliminado.', 'success'); cargarGrados(); }
+    else { mostrarAlerta(data.error || 'Error.', 'error'); }
   }
 
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
   //  MATERIAS
-  // ══════════════════════════════
+  // ══════════════════════════════════════════════════
   async function cargarMaterias() {
     const data  = await api({ accion: 'obtenerMaterias' });
     const tbody = document.getElementById('tabla-materias');
     if (!data.ok || data.materias.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay materias registradas.</td></tr>';
-      return;
+      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay materias.</td></tr>'; return;
     }
     tbody.innerHTML = data.materias.map((m, i) => `
       <tr>
         <td>${m}</td>
-        <td><button class="btn-eliminar" onclick="eliminarMateria(${i}, '${m}')">🗑 Eliminar</button></td>
-      </tr>
-    `).join('');
+        <td><button class="btn-eliminar" onclick="eliminarMateria(${i},'${m}')">🗑 Eliminar</button></td>
+      </tr>`).join('');
   }
 
   async function agregarMateria() {
-    const materia = document.getElementById('new-materia').value.trim();
-    if (!materia) { mostrarAlerta('Escribe el nombre de la materia.', 'error'); return; }
-    const data    = await api({ accion: 'agregarMateria', materia });
-    if (data.ok) {
-      mostrarAlerta('✅ Materia agregada.', 'success');
-      document.getElementById('new-materia').value = '';
-      cargarMaterias();
-    } else {
-      mostrarAlerta(data.error || 'Error al agregar materia.', 'error');
-    }
+    const m = document.getElementById('new-materia').value.trim();
+    if (!m) { mostrarAlerta('Escribe el nombre de la materia.', 'error'); return; }
+    const data = await api({ accion: 'agregarMateria', materia: m });
+    if (data.ok) { mostrarAlerta('✅ Materia agregada.', 'success'); document.getElementById('new-materia').value = ''; cargarMaterias(); }
+    else { mostrarAlerta(data.error || 'Error.', 'error'); }
   }
 
-  async function eliminarMateria(index, materia) {
-    if (!confirm(`¿Eliminar la materia "${materia}"?`)) return;
+  async function eliminarMateria(index, m) {
+    if (!confirm(`¿Eliminar la materia "${m}"?`)) return;
     const data = await api({ accion: 'eliminarMateria', index: parseInt(index) });
-    if (data.ok) {
-      mostrarAlerta('✅ Materia eliminada.', 'success');
-      cargarMaterias();
-    } else {
-      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
+    if (data.ok) { mostrarAlerta('✅ Materia eliminada.', 'success'); cargarMaterias(); }
+    else { mostrarAlerta(data.error || 'Error.', 'error'); }
+  }
+
+  function cerrarModal() { document.getElementById('modal-usuario').classList.remove('open'); }
+  function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
+
+  // Drag and drop
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const input = document.getElementById('input-excel');
+      const dt    = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      leerExcel(input);
     }
-  }
+  });
 
-  function cerrarModal() {
-    document.getElementById('modal-usuario').classList.remove('open');
-  }
-
-  function cerrarSesion() {
-    sessionStorage.clear();
-    window.location.href = '../index.html';
-  }
-
+  // Iniciar
   cargarUsuarios();
+  cargarAlumnos();
   cargarGrados();
   cargarMaterias();
+  poblarFiltroGrados();
 </script>
 </body>
 </html>
