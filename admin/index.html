@@ -7,50 +7,477 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
     header {
       background: white; border-bottom: 1px solid #e2e8f0;
       padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
     }
-    header h1 { font-size: 1.1rem; }
+    header h1 { font-size: 1.1rem; color: #1a202c; }
     .btn-salir {
       background: none; border: 1px solid #cbd5e0;
-      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
     }
-    main { max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    .btn-salir:hover { background: #f7fafc; }
+
+    main { max-width: 860px; margin: 2rem auto; padding: 0 1rem; }
+
+    /* Pestañas */
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 0;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tab {
+      padding: 0.75rem 1.5rem; cursor: pointer; font-size: 0.95rem;
+      color: #718096; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all 0.15s; font-weight: 500;
+      background: none; border-top: none; border-left: none; border-right: none;
+    }
+    .tab:hover { color: #3182ce; }
+    .tab.active { color: #3182ce; border-bottom-color: #3182ce; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Card */
     .card {
-      background: white; border-radius: 12px; padding: 1.5rem;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+      background: white; border-radius: 0 12px 12px 12px;
+      padding: 1.5rem; box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
     }
     .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
-    .aviso {
-      background: #ebf8ff; border: 1px solid #90cdf4; border-radius: 8px;
-      padding: 1rem; color: #2c5282; font-size: 0.9rem; line-height: 1.6;
+
+    /* Formulario inline */
+    .form-inline {
+      display: flex; gap: 0.75rem; flex-wrap: wrap;
+      margin-bottom: 1.25rem; align-items: flex-end;
     }
+    .form-inline .form-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 160px; }
+    label { font-size: 0.8rem; font-weight: 600; color: #4a5568; }
+    input, select {
+      padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
+      border-radius: 8px; font-size: 0.9rem; background: white; outline: none; width: 100%;
+    }
+    input:focus, select:focus { border-color: #4299e1; }
+
+    /* Botones */
+    .btn-agregar {
+      padding: 0.6rem 1.25rem; background: #3182ce; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; white-space: nowrap; align-self: flex-end;
+    }
+    .btn-agregar:hover { background: #2b6cb0; }
+    .btn-agregar:disabled { background: #a0aec0; cursor: not-allowed; }
+    .btn-eliminar {
+      padding: 0.3rem 0.75rem; background: none; border: 1px solid #fc8181;
+      color: #e53e3e; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+    }
+    .btn-eliminar:hover { background: #fff5f5; }
+    .btn-editar {
+      padding: 0.3rem 0.75rem; background: none; border: 1px solid #90cdf4;
+      color: #3182ce; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-right: 0.4rem;
+    }
+    .btn-editar:hover { background: #ebf8ff; }
+
+    /* Tabla */
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th {
+      text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
+      color: #4a5568; font-size: 0.8rem; font-weight: 600; border-bottom: 1px solid #e2e8f0;
+    }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+
+    /* Badge rol */
+    .badge-rol {
+      padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-rol.maestro  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
+    .badge-rol.advisor  { background: #faf5ff; color: #6b46c1; border: 1px solid #d6bcfa; }
+    .badge-rol.admin    { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+
+    /* Alertas */
+    .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+    .alert.success { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .alert.error   { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+
+    /* Modal edición */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: none; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 12px; padding: 1.75rem;
+      width: 90%; max-width: 420px; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .modal h3 { font-size: 1rem; margin-bottom: 1.25rem; }
+    .modal .form-group { margin-bottom: 1rem; }
+    .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+    .btn-cancelar {
+      padding: 0.5rem 1.25rem; background: none;
+      border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer;
+    }
+    .btn-guardar {
+      padding: 0.5rem 1.25rem; background: #3182ce; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+    }
+    .btn-guardar:hover { background: #2b6cb0; }
   </style>
 </head>
 <body>
+
 <header>
-  <h1>🏫 Sistema de Intervención — Admin</h1>
-  <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+  <div>
+    <h1>🏫 Sistema de Intervención</h1>
+    <span style="font-size:0.85rem; color:#718096;">Vista: Administrador</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <span id="nombre-usuario" style="font-size:0.85rem; color:#4a5568;"></span>
+    <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
 </header>
+
 <main>
-  <div class="card">
-    <h2>⚙️ Panel de administración</h2>
-    <div class="aviso">
-      <strong>En construcción.</strong><br>
-      Aquí podrás gestionar:<br>
-      • Lista de usuarios (maestros y advisors)<br>
-      • Grados disponibles<br>
-      • Materias disponibles<br><br>
-      Esta sección se completa en la Fase 5 del proyecto.
+
+  <div class="alert" id="alerta"></div>
+
+  <!-- Pestañas -->
+  <div class="tabs">
+    <button class="tab active" onclick="cambiarTab('usuarios')">👤 Usuarios</button>
+    <button class="tab"        onclick="cambiarTab('grados')">🏷️ Grados</button>
+    <button class="tab"        onclick="cambiarTab('materias')">📚 Materias</button>
+  </div>
+
+  <!-- ─── PESTAÑA USUARIOS ─── -->
+  <div class="tab-content active" id="tab-usuarios">
+    <div class="card">
+      <h2>Agregar usuario</h2>
+      <div class="form-inline">
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" id="new-usuario" placeholder="Ej. jperez">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="new-password" placeholder="Contraseña">
+        </div>
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="new-nombre" placeholder="Ej. Juan Pérez">
+        </div>
+        <div class="form-group" style="max-width:140px;">
+          <label>Rol</label>
+          <select id="new-rol">
+            <option value="maestro">Maestro</option>
+            <option value="advisor">Advisor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button class="btn-agregar" onclick="agregarUsuario()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Usuarios registrados</h2>
+      <table>
+        <thead>
+          <tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="tabla-usuarios">
+          <tr><td colspan="4" class="empty">Cargando...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
+  <!-- ─── PESTAÑA GRADOS ─── -->
+  <div class="tab-content" id="tab-grados">
+    <div class="card">
+      <h2>Agregar grado</h2>
+      <div class="form-inline">
+        <div class="form-group">
+          <label>Nombre del grado</label>
+          <input type="text" id="new-grado" placeholder="Ej. 4° A">
+        </div>
+        <button class="btn-agregar" onclick="agregarGrado()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Grados disponibles</h2>
+      <table>
+        <thead>
+          <tr><th>Grado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="tabla-grados">
+          <tr><td colspan="2" class="empty">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── PESTAÑA MATERIAS ─── -->
+  <div class="tab-content" id="tab-materias">
+    <div class="card">
+      <h2>Agregar materia</h2>
+      <div class="form-inline">
+        <div class="form-group">
+          <label>Nombre de la materia</label>
+          <input type="text" id="new-materia" placeholder="Ej. Química">
+        </div>
+        <button class="btn-agregar" onclick="agregarMateria()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Materias disponibles</h2>
+      <table>
+        <thead>
+          <tr><th>Materia</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="tabla-materias">
+          <tr><td colspan="2" class="empty">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </main>
+
+<!-- Modal editar usuario -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal">
+    <h3>✏️ Editar usuario</h3>
+    <input type="hidden" id="edit-index">
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="edit-nombre">
+    </div>
+    <div class="form-group">
+      <label>Nueva contraseña <span style="font-weight:400; color:#a0aec0;">(dejar vacío para no cambiar)</span></label>
+      <input type="password" id="edit-password" placeholder="Nueva contraseña">
+    </div>
+    <div class="form-group">
+      <label>Rol</label>
+      <select id="edit-rol">
+        <option value="maestro">Maestro</option>
+        <option value="advisor">Advisor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar"  onclick="guardarEdicionUsuario()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycby1GqAiy__M9gKlcKUvDFvCRmACQX7A-SJCGwo-5AOY01387MNqbbAdst_bgQ-W1p0O/exec';
+
   const usuario = sessionStorage.getItem('usuario');
   const rol     = sessionStorage.getItem('rol');
+  const nombre  = sessionStorage.getItem('nombre');
   if (!usuario || rol !== 'admin') window.location.href = '../index.html';
-  function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
+  document.getElementById('nombre-usuario').textContent = nombre || usuario;
+
+  // ─── PESTAÑAS ───
+  function cambiarTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`).classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  }
+
+  // ─── ALERTAS ───
+  function mostrarAlerta(msg, tipo) {
+    const a = document.getElementById('alerta');
+    a.textContent = msg;
+    a.className = `alert ${tipo}`;
+    a.style.display = 'block';
+    setTimeout(() => a.style.display = 'none', 3500);
+  }
+
+  // ─── API ───
+  async function api(body) {
+    const res  = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
+
+  // ══════════════════════════════
+  //  USUARIOS
+  // ══════════════════════════════
+  async function cargarUsuarios() {
+    const data = await api({ accion: 'obtenerUsuarios' });
+    const tbody = document.getElementById('tabla-usuarios');
+    if (!data.ok || data.usuarios.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No hay usuarios registrados.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.usuarios.map((u, i) => `
+      <tr>
+        <td><strong>${u.usuario}</strong></td>
+        <td>${u.nombre}</td>
+        <td><span class="badge-rol ${u.rol}">${u.rol}</span></td>
+        <td>
+          <button class="btn-editar"   onclick="abrirEdicionUsuario(${i}, '${u.nombre}', '${u.rol}')">✏️ Editar</button>
+          <button class="btn-eliminar" onclick="eliminarUsuario(${i}, '${u.usuario}')">🗑 Eliminar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function agregarUsuario() {
+    const nuevoUsuario = document.getElementById('new-usuario').value.trim();
+    const password     = document.getElementById('new-password').value.trim();
+    const nombre       = document.getElementById('new-nombre').value.trim();
+    const rol          = document.getElementById('new-rol').value;
+    if (!nuevoUsuario || !password || !nombre) {
+      mostrarAlerta('Por favor completa todos los campos.', 'error'); return;
+    }
+    const data = await api({ accion: 'agregarUsuario', usuario: nuevoUsuario, password, nombre, rol });
+    if (data.ok) {
+      mostrarAlerta('✅ Usuario agregado correctamente.', 'success');
+      document.getElementById('new-usuario').value  = '';
+      document.getElementById('new-password').value = '';
+      document.getElementById('new-nombre').value   = '';
+      cargarUsuarios();
+    } else {
+      mostrarAlerta(data.error || 'Error al agregar usuario.', 'error');
+    }
+  }
+
+  function abrirEdicionUsuario(index, nombre, rol) {
+    document.getElementById('edit-index').value   = index;
+    document.getElementById('edit-nombre').value  = nombre;
+    document.getElementById('edit-password').value= '';
+    document.getElementById('edit-rol').value     = rol;
+    document.getElementById('modal-usuario').classList.add('open');
+  }
+
+  async function guardarEdicionUsuario() {
+    const index    = document.getElementById('edit-index').value;
+    const nombre   = document.getElementById('edit-nombre').value.trim();
+    const password = document.getElementById('edit-password').value.trim();
+    const rol      = document.getElementById('edit-rol').value;
+    if (!nombre) { mostrarAlerta('El nombre no puede estar vacío.', 'error'); return; }
+    const data = await api({ accion: 'editarUsuario', index: parseInt(index), nombre, password, rol });
+    if (data.ok) {
+      mostrarAlerta('✅ Usuario actualizado.', 'success');
+      cerrarModal();
+      cargarUsuarios();
+    } else {
+      mostrarAlerta(data.error || 'Error al editar.', 'error');
+    }
+  }
+
+  async function eliminarUsuario(index, usuarioNombre) {
+    if (!confirm(`¿Eliminar al usuario "${usuarioNombre}"? Esta acción no se puede deshacer.`)) return;
+    const data = await api({ accion: 'eliminarUsuario', index: parseInt(index) });
+    if (data.ok) {
+      mostrarAlerta('✅ Usuario eliminado.', 'success');
+      cargarUsuarios();
+    } else {
+      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
+    }
+  }
+
+  // ══════════════════════════════
+  //  GRADOS
+  // ══════════════════════════════
+  async function cargarGrados() {
+    const data  = await api({ accion: 'obtenerGrados' });
+    const tbody = document.getElementById('tabla-grados');
+    if (!data.ok || data.grados.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay grados registrados.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.grados.map((g, i) => `
+      <tr>
+        <td>${g}</td>
+        <td><button class="btn-eliminar" onclick="eliminarGrado(${i}, '${g}')">🗑 Eliminar</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function agregarGrado() {
+    const grado = document.getElementById('new-grado').value.trim();
+    if (!grado) { mostrarAlerta('Escribe el nombre del grado.', 'error'); return; }
+    const data  = await api({ accion: 'agregarGrado', grado });
+    if (data.ok) {
+      mostrarAlerta('✅ Grado agregado.', 'success');
+      document.getElementById('new-grado').value = '';
+      cargarGrados();
+    } else {
+      mostrarAlerta(data.error || 'Error al agregar grado.', 'error');
+    }
+  }
+
+  async function eliminarGrado(index, grado) {
+    if (!confirm(`¿Eliminar el grado "${grado}"?`)) return;
+    const data = await api({ accion: 'eliminarGrado', index: parseInt(index) });
+    if (data.ok) {
+      mostrarAlerta('✅ Grado eliminado.', 'success');
+      cargarGrados();
+    } else {
+      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
+    }
+  }
+
+  // ══════════════════════════════
+  //  MATERIAS
+  // ══════════════════════════════
+  async function cargarMaterias() {
+    const data  = await api({ accion: 'obtenerMaterias' });
+    const tbody = document.getElementById('tabla-materias');
+    if (!data.ok || data.materias.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="2" class="empty">No hay materias registradas.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.materias.map((m, i) => `
+      <tr>
+        <td>${m}</td>
+        <td><button class="btn-eliminar" onclick="eliminarMateria(${i}, '${m}')">🗑 Eliminar</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function agregarMateria() {
+    const materia = document.getElementById('new-materia').value.trim();
+    if (!materia) { mostrarAlerta('Escribe el nombre de la materia.', 'error'); return; }
+    const data    = await api({ accion: 'agregarMateria', materia });
+    if (data.ok) {
+      mostrarAlerta('✅ Materia agregada.', 'success');
+      document.getElementById('new-materia').value = '';
+      cargarMaterias();
+    } else {
+      mostrarAlerta(data.error || 'Error al agregar materia.', 'error');
+    }
+  }
+
+  async function eliminarMateria(index, materia) {
+    if (!confirm(`¿Eliminar la materia "${materia}"?`)) return;
+    const data = await api({ accion: 'eliminarMateria', index: parseInt(index) });
+    if (data.ok) {
+      mostrarAlerta('✅ Materia eliminada.', 'success');
+      cargarMaterias();
+    } else {
+      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
+    }
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-usuario').classList.remove('open');
+  }
+
+  function cerrarSesion() {
+    sessionStorage.clear();
+    window.location.href = '../index.html';
+  }
+
+  cargarUsuarios();
+  cargarGrados();
+  cargarMaterias();
 </script>
 </body>
 </html>
