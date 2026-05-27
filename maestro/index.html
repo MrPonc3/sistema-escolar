@@ -7,75 +7,169 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
     header {
       background: white; border-bottom: 1px solid #e2e8f0;
       padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
     }
     header h1 { font-size: 1.1rem; color: #1a202c; }
+    .header-right { display: flex; align-items: center; gap: 1.5rem; }
+    .reloj { text-align: right; line-height: 1.2; }
+    .reloj .hora  { font-size: 1.3rem; font-weight: 700; color: #2d3748; font-variant-numeric: tabular-nums; }
+    .reloj .fecha { font-size: 0.75rem; color: #718096; }
     .btn-salir {
       background: none; border: 1px solid #cbd5e0;
       padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
     }
-    main { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .btn-salir:hover { background: #f7fafc; }
+
+    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; }
+    .tab {
+      padding: 0.75rem 1.5rem; cursor: pointer; font-size: 0.95rem;
+      color: #718096; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all 0.15s; font-weight: 500;
+      background: none; border-top: none; border-left: none; border-right: none;
+    }
+    .tab:hover { color: #3182ce; }
+    .tab.active { color: #3182ce; border-bottom-color: #3182ce; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .card {
-      background: white; border-radius: 12px; padding: 1.5rem;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+      background: white; border-radius: 0 12px 12px 12px;
+      padding: 1.5rem; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
     }
     .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
+
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
     .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
     label { font-size: 0.8rem; font-weight: 600; color: #4a5568; }
     select, input {
       padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
-      border-radius: 8px; font-size: 0.95rem; background: white; outline: none;
+      border-radius: 8px; font-size: 0.9rem; background: white; outline: none;
     }
     select:focus, input:focus { border-color: #4299e1; }
-    .estado-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* Lista de alumnos */
+    .alumnos-lista { margin-top: 1rem; }
+    .alumno-row {
+      display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.5rem;
+      background: white; transition: background 0.15s;
+    }
+    .alumno-row:hover { background: #f7fafc; }
+    .alumno-row.seleccionado { background: #ebf8ff; border-color: #90cdf4; }
+    .alumno-nombre { flex: 1; font-size: 0.95rem; font-weight: 500; color: #2d3748; }
+    .alumno-status { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge.peligro     { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
+    .badge.reprobando  { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .badge.felicitacion{ background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .badge.urgente     { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .badge.ok          { background: #f7fafc; color: #718096; border: 1px solid #e2e8f0; }
+
+    /* Botones de estado batch */
+    .estado-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .estado-btn {
-      padding: 0.5rem 1.25rem; border-radius: 8px; border: 2px solid #cbd5e0;
-      background: white; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+      padding: 0.45rem 1rem; border-radius: 8px; border: 2px solid #cbd5e0;
+      background: white; cursor: pointer; font-size: 0.85rem; font-weight: 500;
       transition: all 0.15s; color: #4a5568;
     }
     .estado-btn.peligro.active     { border-color: #ed8936; background: #fffaf0; color: #c05621; }
     .estado-btn.reprobando.active  { border-color: #e53e3e; background: #fff5f5; color: #c53030; }
     .estado-btn.felicitacion.active{ border-color: #48bb78; background: #f0fff4; color: #276749; }
-    .btn-reportar {
-      width: 100%; padding: 0.75rem; background: #3182ce; color: white;
-      border: none; border-radius: 8px; font-size: 1rem; font-weight: 600;
-      cursor: pointer; margin-top: 0.5rem;
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    .estado-btn.urgente.active     { border-color: #e53e3e; background: #fff5f5; color: #9b2335; }
+
+    .btn-principal {
+      padding: 0.65rem 1.5rem; background: #3182ce; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;
     }
-    .btn-reportar:hover { background: #2b6cb0; }
-    .btn-reportar:disabled { background: #a0aec0; cursor: not-allowed; }
+    .btn-principal:hover { background: #2b6cb0; }
+    .btn-principal:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .btn-secundario {
+      padding: 0.65rem 1.5rem; background: none; color: #4a5568;
+      border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+    }
+    .btn-secundario:hover { background: #f7fafc; }
+
+    .btn-peligro {
+      padding: 0.5rem 1rem; background: none; color: #e53e3e;
+      border: 1px solid #fc8181; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn-peligro:hover { background: #fff5f5; }
+
+    /* Asistencia */
+    .asistencia-btns { display: flex; gap: 0.4rem; }
+    .asist-btn {
+      padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid #e2e8f0;
+      background: white; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: all 0.15s;
+    }
+    .asist-btn.asistio.active   { background: #f0fff4; border-color: #48bb78; color: #276749; }
+    .asist-btn.no-asistio.active{ background: #fff5f5; border-color: #fc8181; color: #c53030; }
+    .asist-btn.justificado.active{ background: #ebf8ff; border-color: #90cdf4; color: #2b6cb0; }
+    .asist-btn.tarde.active     { background: #fffaf0; border-color: #ed8936; color: #c05621; }
+
+    .semana-info {
+      background: #ebf8ff; border: 1px solid #90cdf4; border-radius: 8px;
+      padding: 0.75rem 1rem; font-size: 0.85rem; color: #2b6cb0; margin-bottom: 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+    .alert.success { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .alert.error   { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+
+    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+    .cargando { text-align: center; padding: 1.5rem; color: #718096; font-size: 0.9rem; }
+
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th {
       text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
       color: #4a5568; font-size: 0.8rem; font-weight: 600; border-bottom: 1px solid #e2e8f0;
     }
-    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
-    .badge { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge.peligro     { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
-    .badge.reprobando  { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
-    .badge.felicitacion{ background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
-    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
-    .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
-    .alert.success { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
-    .alert.error   { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; vertical-align: middle; }
+
     .spinner {
       width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4);
       border-top-color: white; border-radius: 50%;
       animation: spin 0.7s linear infinite; display: none;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .seleccion-barra {
+      background: #2b6cb0; color: white; border-radius: 8px;
+      padding: 0.75rem 1rem; margin-bottom: 1rem;
+      display: none; justify-content: space-between; align-items: center;
+      font-size: 0.9rem;
+    }
+    .seleccion-barra.visible { display: flex; }
+
+    input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; accent-color: #3182ce; }
+
+    .obs-input {
+      padding: 0.35rem 0.6rem; border: 1px solid #cbd5e0; border-radius: 6px;
+      font-size: 0.82rem; width: 180px; outline: none;
+    }
+    .obs-input:focus { border-color: #4299e1; }
   </style>
 </head>
 <body>
+
 <header>
   <div>
     <h1>🏫 Sistema de Intervención</h1>
     <span style="font-size:0.85rem; color:#718096;">Vista: Maestro</span>
   </div>
-  <div style="display:flex; align-items:center; gap:1rem;">
+  <div class="header-right">
+    <div class="reloj">
+      <div class="hora"  id="reloj-hora">00:00:00</div>
+      <div class="fecha" id="reloj-fecha"></div>
+    </div>
     <span id="nombre-usuario" style="font-size:0.85rem; color:#4a5568;"></span>
     <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
@@ -84,90 +178,136 @@
 <main>
   <div class="alert" id="alerta"></div>
 
-  <div class="card">
-    <h2>📋 Reportar alumno</h2>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Grado</label>
-        <select id="grado"><option value="">Cargando...</option></select>
-      </div>
-      <div class="form-group">
-        <label>Materia</label>
-        <select id="materia"><option value="">Cargando...</option></select>
-      </div>
-    </div>
-    <div class="form-group" style="margin-bottom:1rem;">
-      <label>Nombre del alumno</label>
-      <input type="text" id="alumno" placeholder="Nombre completo del alumno">
-    </div>
-    <div class="form-group" style="margin-bottom:1.25rem;">
-      <label>Estado</label>
-      <div class="estado-btns">
-        <button class="estado-btn peligro"       onclick="seleccionarEstado(this,'peligro')">⚠️ En peligro de reprobar</button>
-        <button class="estado-btn reprobando"    onclick="seleccionarEstado(this,'reprobando')">🔴 Reprobando</button>
-        <button class="estado-btn felicitacion"  onclick="seleccionarEstado(this,'felicitacion')">🌟 Felicitación</button>
-      </div>
-    </div>
-    <div class="form-group" style="margin-bottom:1rem;">
-      <label>Observaciones (opcional)</label>
-      <input type="text" id="observaciones" placeholder="Ej. Falta de entrega de tareas...">
-    </div>
-    <button class="btn-reportar" id="btn-guardar" onclick="agregarReporte()">
-      <div class="spinner" id="spinner"></div>
-      <span id="btn-texto">Guardar reporte</span>
-    </button>
+  <div class="tabs">
+    <button class="tab active" onclick="cambiarTab('reportar')">📋 Reportar alumnos</button>
+    <button class="tab"        onclick="cambiarTab('semana')">📅 Invitados esta semana</button>
   </div>
 
-  <div class="card">
-    <h2>📁 Mis reportes de esta sesión</h2>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr><th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th></tr>
-        </thead>
-        <tbody id="tabla-reportes">
-          <tr><td colspan="5" class="empty">Aún no has guardado reportes.</td></tr>
-        </tbody>
-      </table>
+  <!-- ─── TAB REPORTAR ─── -->
+  <div class="tab-content active" id="tab-reportar">
+    <div class="card">
+      <h2>Selecciona materia y grado</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Materia</label>
+          <select id="sel-materia" onchange="onCambioFiltro()">
+            <option value="">— Selecciona materia —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Grado</label>
+          <select id="sel-grado" onchange="onCambioFiltro()">
+            <option value="">— Selecciona grado —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="seccion-alumnos" style="display:none;">
+      <div class="card">
+        <h2>Lista de alumnos</h2>
+
+        <div class="seleccion-barra" id="barra-seleccion">
+          <span id="label-seleccion">0 alumnos seleccionados</span>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn-secundario" style="color:white; border-color:rgba(255,255,255,0.4); font-size:0.85rem; padding:0.4rem 0.9rem;" onclick="deseleccionarTodos()">Deseleccionar</button>
+          </div>
+        </div>
+
+        <!-- Botones de estado para batch -->
+        <div style="margin-bottom:0.75rem;">
+          <p style="font-size:0.8rem; color:#718096; margin-bottom:0.5rem;">Selecciona alumnos y aplica un estado:</p>
+          <div class="estado-btns">
+            <button class="estado-btn peligro"      onclick="seleccionarEstado('peligro')">⚠️ En peligro</button>
+            <button class="estado-btn reprobando"   onclick="seleccionarEstado('reprobando')">🔴 Reprobando</button>
+            <button class="estado-btn felicitacion" onclick="seleccionarEstado('felicitacion')">🌟 Felicitación</button>
+            <button class="estado-btn urgente"      onclick="seleccionarEstado('urgente')">🚨 Asesoría urgente</button>
+          </div>
+        </div>
+
+        <div id="lista-alumnos" class="alumnos-lista">
+          <div class="cargando">Selecciona una materia y un grado para ver la lista.</div>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; margin-top:1.25rem; flex-wrap:wrap;">
+          <button class="btn-principal" id="btn-guardar" onclick="guardarReportes()">
+            <div class="spinner" id="spinner"></div>
+            <span id="btn-texto">💾 Guardar reportes</span>
+          </button>
+          <button class="btn-secundario" onclick="limpiarSeleccion()">Limpiar selección</button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- ─── TAB SEMANA ─── -->
+  <div class="tab-content" id="tab-semana">
+    <div class="card">
+      <h2>📅 Alumnos invitados esta semana</h2>
+
+      <div class="semana-info">
+        <span id="label-semana">Semana actual</span>
+        <button class="btn-peligro" onclick="limpiarSemana()">🗑 Limpiar lista de esta semana</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th><th>Asistencia</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-semana">
+            <tr><td colspan="6" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:1.25rem; display:flex; gap:0.75rem;">
+        <button class="btn-principal" onclick="guardarAsistencia()">💾 Guardar asistencia</button>
+        <button class="btn-secundario" onclick="cargarInvitadosSemana()">🔄 Actualizar</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycby1GqAiy__M9gKlcKUvDFvCRmACQX7A-SJCGwo-5AOY01387MNqbbAdst_bgQ-W1p0O/exec';
 
-  const usuario = sessionStorage.getItem('usuario');
-  const rol     = sessionStorage.getItem('rol');
-  const nombre  = sessionStorage.getItem('nombre');
-  if (!usuario || rol !== 'maestro') window.location.href = '../index.html';
-  document.getElementById('nombre-usuario').textContent = nombre || usuario;
+  const usuarioLogin = sessionStorage.getItem('usuario');
+  const rol          = sessionStorage.getItem('rol');
+  const nombre       = sessionStorage.getItem('nombre');
+  if (!usuarioLogin || rol !== 'maestro') window.location.href = '../index.html';
+  document.getElementById('nombre-usuario').textContent = nombre || usuarioLogin;
 
+  let todosAlumnos   = [];
+  let todosReportes  = [];
+  let estadosBatch   = {};
+  let observaciones  = {};
   let estadoSeleccionado = '';
-  let reportesSesion = [];
 
-  async function cargarListas() {
-    try {
-      const [rG, rM] = await Promise.all([
-        fetch(API_URL, { method:'POST', body: JSON.stringify({ accion:'obtenerGrados' }) }).then(r => r.json()),
-        fetch(API_URL, { method:'POST', body: JSON.stringify({ accion:'obtenerMaterias' }) }).then(r => r.json())
-      ]);
-      const selG = document.getElementById('grado');
-      const selM = document.getElementById('materia');
-      selG.innerHTML = '<option value="">— Selecciona grado —</option>';
-      selM.innerHTML = '<option value="">— Selecciona materia —</option>';
-      rG.grados.forEach(g   => { const o = document.createElement('option'); o.value = o.textContent = g;   selG.appendChild(o); });
-      rM.materias.forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m;   selM.appendChild(o); });
-    } catch(e) {
-      mostrarAlerta('No se pudieron cargar los grados y materias.', 'error');
-    }
+  // ── RELOJ ──────────────────────────────────────────
+  function actualizarReloj() {
+    const ahora = new Date();
+    const hora  = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const fecha = ahora.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('reloj-hora').textContent  = hora;
+    document.getElementById('reloj-fecha').textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  }
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+
+  // ── PESTAÑAS ───────────────────────────────────────
+  function cambiarTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`).classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    if (tab === 'semana') cargarInvitadosSemana();
   }
 
-  function seleccionarEstado(btn, estado) {
-    document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    estadoSeleccionado = estado;
-  }
-
+  // ── ALERTAS ────────────────────────────────────────
   function mostrarAlerta(msg, tipo) {
     const a = document.getElementById('alerta');
     a.textContent = msg;
@@ -176,80 +316,271 @@
     setTimeout(() => a.style.display = 'none', 3500);
   }
 
-  async function agregarReporte() {
-    const grado   = document.getElementById('grado').value;
-    const materia = document.getElementById('materia').value;
-    const alumno  = document.getElementById('alumno').value.trim();
-    const obs     = document.getElementById('observaciones').value.trim();
+  // ── API ────────────────────────────────────────────
+  async function api(body) {
+    const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
 
-    if (!grado || !materia || !alumno || !estadoSeleccionado) {
-      mostrarAlerta('Por favor completa todos los campos obligatorios.', 'error');
+  // ── CARGAR LISTAS INICIALES ────────────────────────
+  async function cargarListas() {
+    const [rG, rM, rR] = await Promise.all([
+      api({ accion: 'obtenerGrados' }),
+      api({ accion: 'obtenerMaterias' }),
+      api({ accion: 'obtenerReportes' })
+    ]);
+    const selG = document.getElementById('sel-grado');
+    const selM = document.getElementById('sel-materia');
+    selG.innerHTML = '<option value="">— Selecciona grado —</option>';
+    selM.innerHTML = '<option value="">— Selecciona materia —</option>';
+    (rG.grados   || []).forEach(g => { const o = document.createElement('option'); o.value = o.textContent = g; selG.appendChild(o); });
+    (rM.materias || []).forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m; selM.appendChild(o); });
+    todosReportes = rR.reportes || [];
+  }
+
+  // ── CAMBIO DE FILTRO ───────────────────────────────
+  async function onCambioFiltro() {
+    const grado   = document.getElementById('sel-grado').value;
+    const materia = document.getElementById('sel-materia').value;
+    if (!grado || !materia) return;
+
+    document.getElementById('seccion-alumnos').style.display = 'block';
+    document.getElementById('lista-alumnos').innerHTML = '<div class="cargando">Cargando alumnos...</div>';
+    estadosBatch  = {};
+    observaciones = {};
+    estadoSeleccionado = '';
+    document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
+
+    const data = await api({ accion: 'obtenerAlumnos', grado });
+    todosAlumnos = data.alumnos || [];
+    renderListaAlumnos();
+  }
+
+  // ── RENDER LISTA ALUMNOS ───────────────────────────
+  function renderListaAlumnos() {
+    const grado   = document.getElementById('sel-grado').value;
+    const materia = document.getElementById('sel-materia').value;
+    const lista   = document.getElementById('lista-alumnos');
+
+    if (todosAlumnos.length === 0) {
+      lista.innerHTML = '<div class="empty">No hay alumnos registrados en este grado.</div>';
       return;
     }
 
+    lista.innerHTML = todosAlumnos.map((a, i) => {
+      const nombreCompleto = `${a.nombre} ${a.apellido}`;
+      const reportesAlumno = todosReportes.filter(r =>
+        r.alumno === nombreCompleto && r.grado === grado
+      );
+      const estadoActual = estadosBatch[i] || '';
+
+      // Calcular status del alumno
+      const reprobando  = reportesAlumno.filter(r => r.estado === 'reprobando').length;
+      const peligro     = reportesAlumno.filter(r => r.estado === 'peligro').length;
+      const urgente     = reportesAlumno.filter(r => r.estado === 'urgente').length;
+
+      let statusBadges = '';
+      if (reprobando > 0) statusBadges += `<span class="badge reprobando">🔴 Reprobando ${reprobando} mat.</span>`;
+      if (peligro    > 0) statusBadges += `<span class="badge peligro">⚠️ En peligro ${peligro} mat.</span>`;
+      if (urgente    > 0) statusBadges += `<span class="badge urgente">🚨 Urgente</span>`;
+      if (!statusBadges)  statusBadges  = `<span class="badge ok">✅ Sin reportes</span>`;
+
+      const seleccionado = estadoActual !== '';
+
+      return `
+        <div class="alumno-row ${seleccionado ? 'seleccionado' : ''}" id="row-${i}">
+          <input type="checkbox" id="chk-${i}" ${seleccionado ? 'checked' : ''}
+            onchange="toggleAlumno(${i})">
+          <div class="alumno-nombre">${nombreCompleto}</div>
+          <div class="alumno-status">${statusBadges}</div>
+          ${estadoActual ? `
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span class="badge ${estadoActual}">${etiquetaEstado(estadoActual)}</span>
+              <input class="obs-input" type="text" placeholder="Observación..."
+                value="${observaciones[i] || ''}"
+                onchange="observaciones[${i}] = this.value"
+                onclick="event.stopPropagation()">
+            </div>` : ''}
+        </div>`;
+    }).join('');
+
+    actualizarBarraSeleccion();
+  }
+
+  function etiquetaEstado(e) {
+    const map = { peligro:'⚠️ En peligro', reprobando:'🔴 Reprobando', felicitacion:'🌟 Felicitación', urgente:'🚨 Urgente' };
+    return map[e] || e;
+  }
+
+  // ── SELECCIÓN ──────────────────────────────────────
+  function toggleAlumno(i) {
+    const chk = document.getElementById(`chk-${i}`);
+    if (chk.checked) {
+      estadosBatch[i] = estadoSeleccionado || 'peligro';
+    } else {
+      delete estadosBatch[i];
+      delete observaciones[i];
+    }
+    renderListaAlumnos();
+  }
+
+  function seleccionarEstado(estado) {
+    estadoSeleccionado = estado;
+    document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.estado-btn.${estado}`).classList.add('active');
+    // Aplicar a todos los ya seleccionados
+    Object.keys(estadosBatch).forEach(i => { estadosBatch[i] = estado; });
+    renderListaAlumnos();
+  }
+
+  function deseleccionarTodos() {
+    estadosBatch  = {};
+    observaciones = {};
+    renderListaAlumnos();
+  }
+
+  function limpiarSeleccion() {
+    estadosBatch  = {};
+    observaciones = {};
+    estadoSeleccionado = '';
+    document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
+    renderListaAlumnos();
+  }
+
+  function actualizarBarraSeleccion() {
+    const n    = Object.keys(estadosBatch).length;
+    const barra = document.getElementById('barra-seleccion');
+    document.getElementById('label-seleccion').textContent = `${n} alumno(s) seleccionado(s)`;
+    barra.classList.toggle('visible', n > 0);
+  }
+
+  // ── GUARDAR REPORTES ───────────────────────────────
+  async function guardarReportes() {
+    const indices = Object.keys(estadosBatch);
+    if (indices.length === 0) {
+      mostrarAlerta('Selecciona al menos un alumno y asígnale un estado.', 'error'); return;
+    }
+    const grado   = document.getElementById('sel-grado').value;
+    const materia = document.getElementById('sel-materia').value;
+
     const btn     = document.getElementById('btn-guardar');
     const spinner = document.getElementById('spinner');
-    const btnTexto= document.getElementById('btn-texto');
+    const texto   = document.getElementById('btn-texto');
     btn.disabled = true;
     spinner.style.display = 'block';
-    btnTexto.textContent = 'Guardando...';
+    texto.textContent = 'Guardando...';
 
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          accion: 'guardarReporte',
-          maestro: usuario, alumno, grado, materia,
-          estado: estadoSeleccionado, observaciones: obs
-        })
+    let errores = 0;
+    for (const i of indices) {
+      const alumno = todosAlumnos[i];
+      const res = await api({
+        accion: 'guardarReporte',
+        maestro: usuarioLogin,
+        alumno:  `${alumno.nombre} ${alumno.apellido}`,
+        grado, materia,
+        estado:        estadosBatch[i],
+        observaciones: observaciones[i] || ''
       });
-      const data = await res.json();
-      if (data.ok) {
-        reportesSesion.push({ alumno, grado, materia, estado: estadoSeleccionado, obs });
-        renderTabla();
-        limpiarFormulario();
-        mostrarAlerta('✅ Reporte guardado correctamente.', 'success');
-      } else {
-        mostrarAlerta('Error al guardar. Intenta de nuevo.', 'error');
-      }
-    } catch(e) {
-      mostrarAlerta('Error de conexión. Intenta de nuevo.', 'error');
+      if (!res.ok) errores++;
     }
 
     btn.disabled = false;
     spinner.style.display = 'none';
-    btnTexto.textContent = 'Guardar reporte';
+    texto.textContent = '💾 Guardar reportes';
+
+    if (errores === 0) {
+      mostrarAlerta(`✅ ${indices.length} reporte(s) guardado(s) correctamente.`, 'success');
+      // Recargar reportes para actualizar status
+      const rR = await api({ accion: 'obtenerReportes' });
+      todosReportes = rR.reportes || [];
+      limpiarSeleccion();
+    } else {
+      mostrarAlerta(`Se guardaron con ${errores} error(es). Revisa tu conexión.`, 'error');
+    }
   }
 
-  function renderTabla() {
-    const etiquetas = { peligro:'⚠️ En peligro', reprobando:'🔴 Reprobando', felicitacion:'🌟 Felicitación' };
-    const tbody = document.getElementById('tabla-reportes');
-    if (reportesSesion.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty">Aún no has guardado reportes.</td></tr>';
+  // ── INVITADOS SEMANA ───────────────────────────────
+  async function cargarInvitadosSemana() {
+    const hoy   = new Date();
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
+    const viernes = new Date(lunes);
+    viernes.setDate(lunes.getDate() + 4);
+    document.getElementById('label-semana').textContent =
+      `Semana del ${lunes.toLocaleDateString('es-MX', { day:'numeric', month:'long' })} al ${viernes.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' })}`;
+
+    const data  = await api({ accion: 'obtenerInvitadosSemana', maestro: usuarioLogin });
+    const tbody = document.getElementById('tabla-semana');
+    const inv   = data.invitados || [];
+
+    if (inv.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No tienes alumnos invitados esta semana.</td></tr>';
       return;
     }
-    tbody.innerHTML = reportesSesion.map(r => `
+
+    tbody.innerHTML = inv.map((r, i) => `
       <tr>
-        <td>${r.alumno}</td><td>${r.grado}</td><td>${r.materia}</td>
-        <td><span class="badge ${r.estado}">${etiquetas[r.estado]}</span></td>
+        <td><strong>${r.alumno}</strong></td>
+        <td>${r.grado}</td>
+        <td>${r.materia}</td>
+        <td><span class="badge ${r.estado}">${etiquetaEstado(r.estado)}</span></td>
         <td>${r.obs || '—'}</td>
-      </tr>
-    `).join('');
+        <td>
+          <div class="asistencia-btns">
+            <button class="asist-btn asistio"    data-i="${i}" onclick="setAsistencia(${i},'asistio')">✅ Asistió</button>
+            <button class="asist-btn no-asistio" data-i="${i}" onclick="setAsistencia(${i},'no-asistio')">❌ No asistió</button>
+            <button class="asist-btn justificado" data-i="${i}" onclick="setAsistencia(${i},'justificado')">📄 Justificado</button>
+            <button class="asist-btn tarde"      data-i="${i}" onclick="setAsistencia(${i},'tarde')">🕐 Tardó</button>
+          </div>
+        </td>
+      </tr>`).join('');
   }
 
-  function limpiarFormulario() {
-    document.getElementById('alumno').value = '';
-    document.getElementById('observaciones').value = '';
-    document.getElementById('grado').value = '';
-    document.getElementById('materia').value = '';
-    document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
-    estadoSeleccionado = '';
+  let asistenciaData = {};
+
+  function setAsistencia(i, estado) {
+    asistenciaData[i] = estado;
+    // Actualizar visual
+    document.querySelectorAll(`.asist-btn[data-i="${i}"]`).forEach(b => b.classList.remove('active'));
+    document.querySelector(`.asist-btn.${estado}[data-i="${i}"]`).classList.add('active');
   }
 
-  function cerrarSesion() {
-    sessionStorage.clear();
-    window.location.href = '../index.html';
+  async function guardarAsistencia() {
+    const indices = Object.keys(asistenciaData);
+    if (indices.length === 0) {
+      mostrarAlerta('Marca la asistencia de al menos un alumno.', 'error'); return;
+    }
+    const data  = await api({ accion: 'obtenerInvitadosSemana', maestro: usuarioLogin });
+    const inv   = data.invitados || [];
+    const registros = indices.map(i => ({
+      alumno: inv[i].alumno,
+      grado:  inv[i].grado,
+      materia: inv[i].materia,
+      estado: asistenciaData[i]
+    }));
+
+    const res = await api({ accion: 'guardarAsistencia', maestro: usuarioLogin, registros });
+    if (res.ok) {
+      mostrarAlerta(`✅ Asistencia guardada para ${registros.length} alumno(s).`, 'success');
+      asistenciaData = {};
+    } else {
+      mostrarAlerta('Error al guardar asistencia.', 'error');
+    }
   }
+
+  async function limpiarSemana() {
+    if (!confirm('¿Limpiar la lista de invitados de esta semana?')) return;
+    const res = await api({ accion: 'limpiarInvitadosSemana', maestro: usuarioLogin });
+    if (res.ok) {
+      mostrarAlerta('✅ Lista limpiada.', 'success');
+      asistenciaData = {};
+      cargarInvitadosSemana();
+    } else {
+      mostrarAlerta('Error al limpiar.', 'error');
+    }
+  }
+
+  function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
 
   cargarListas();
 </script>
