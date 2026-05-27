@@ -7,78 +7,180 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
     header {
       background: white; border-bottom: 1px solid #e2e8f0;
       padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
     }
     header h1 { font-size: 1.1rem; color: #1a202c; }
+    .header-right { display: flex; align-items: center; gap: 1.5rem; }
+    .reloj { text-align: right; line-height: 1.2; }
+    .reloj .hora  { font-size: 1.3rem; font-weight: 700; color: #2d3748; font-variant-numeric: tabular-nums; }
+    .reloj .fecha { font-size: 0.75rem; color: #718096; }
     .btn-salir {
       background: none; border: 1px solid #cbd5e0;
-      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
     }
-    main { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    .btn-salir:hover { background: #f7fafc; }
+
+    main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; }
+    .tab {
+      padding: 0.75rem 1.5rem; cursor: pointer; font-size: 0.95rem;
+      color: #718096; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: all 0.15s; font-weight: 500;
+      background: none; border-top: none; border-left: none; border-right: none;
+    }
+    .tab:hover { color: #3182ce; }
+    .tab.active { color: #3182ce; border-bottom-color: #3182ce; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .card {
-      background: white; border-radius: 12px; padding: 1.5rem;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+      background: white; border-radius: 0 12px 12px 12px;
+      padding: 1.5rem; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
     }
     .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
-    .resumen { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
-    .stat { background: #f7fafc; border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; }
-    .stat .numero { font-size: 2rem; font-weight: 700; }
-    .stat .etiqueta { font-size: 0.8rem; color: #718096; margin-top: 0.25rem; }
+
+    .resumen { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { background: white; border-radius: 10px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .stat .numero  { font-size: 1.8rem; font-weight: 700; }
+    .stat .etiqueta{ font-size: 0.78rem; color: #718096; margin-top: 0.25rem; }
     .stat.peligro .numero     { color: #c05621; }
     .stat.reprobando .numero  { color: #c53030; }
     .stat.felicitacion .numero{ color: #276749; }
+    .stat.urgente .numero     { color: #9b2335; }
+
+    select, input {
+      padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0;
+      border-radius: 8px; font-size: 0.9rem; background: white; outline: none;
+    }
+    select:focus, input:focus { border-color: #4299e1; }
+
     .filtros { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    select { padding: 0.6rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; background: white; outline: none; }
-    select:focus { border-color: #4299e1; }
+
     table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     th {
       text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
       color: #4a5568; font-size: 0.8rem; font-weight: 600; border-bottom: 1px solid #e2e8f0;
     }
-    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; vertical-align: middle; }
+    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+
     .badge { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
     .badge.peligro     { background: #fffaf0; color: #c05621; border: 1px solid #ed8936; }
     .badge.reprobando  { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
     .badge.felicitacion{ background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
-    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
-    .btn-correo {
-      padding: 0.5rem 1.25rem; background: #3182ce; color: white;
+    .badge.urgente     { background: #fff5f5; color: #9b2335; border: 1px solid #fc8181; }
+
+    .btn-principal {
+      padding: 0.65rem 1.5rem; background: #3182ce; color: white;
       border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
     }
-    .btn-correo:hover { background: #2b6cb0; }
-    .btn-correo:disabled { background: #a0aec0; cursor: not-allowed; }
+    .btn-principal:hover { background: #2b6cb0; }
+    .btn-principal:disabled { background: #a0aec0; cursor: not-allowed; }
+    .btn-secundario {
+      padding: 0.65rem 1.5rem; background: none; color: #4a5568;
+      border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+    }
+    .btn-secundario:hover { background: #f7fafc; }
+    .btn-verde {
+      padding: 0.65rem 1.5rem; background: #38a169; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    }
+    .btn-verde:hover { background: #2f855a; }
+
+    input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; accent-color: #3182ce; }
+
+    .seleccion-barra {
+      background: #2b6cb0; color: white; border-radius: 8px;
+      padding: 0.75rem 1rem; margin-bottom: 1rem;
+      display: none; justify-content: space-between; align-items: center; font-size: 0.9rem;
+    }
+    .seleccion-barra.visible { display: flex; }
+
+    .alert { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+    .alert.success { background: #f0fff4; color: #276749; border: 1px solid #48bb78; }
+    .alert.error   { background: #fff5f5; color: #c53030; border: 1px solid #e53e3e; }
+    .alert.info    { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
+
+    /* Modal */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
       display: none; align-items: center; justify-content: center; z-index: 100;
     }
     .modal-overlay.open { display: flex; }
-    .modal { background: white; border-radius: 12px; padding: 1.75rem; width: 90%; max-width: 540px; }
-    .modal h3 { font-size: 1rem; margin-bottom: 1rem; }
-    .modal textarea {
-      width: 100%; height: 200px; padding: 0.75rem; border: 1px solid #cbd5e0;
-      border-radius: 8px; font-size: 0.9rem; resize: vertical; font-family: inherit; outline: none;
+    .modal {
+      background: white; border-radius: 12px; padding: 1.75rem;
+      width: 95%; max-width: 680px; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     }
-    .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+    .modal h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .modal p.subtitulo { font-size: 0.85rem; color: #718096; margin-bottom: 1.25rem; }
+
+    .tipo-correo-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .tipo-btn {
+      padding: 0.5rem 1.1rem; border-radius: 8px; border: 2px solid #e2e8f0;
+      background: white; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #4a5568;
+      transition: all 0.15s;
+    }
+    .tipo-btn.active { border-color: #3182ce; background: #ebf8ff; color: #2b6cb0; }
+
+    .mailmeteor-tabla { overflow-x: auto; margin-bottom: 1rem; }
+    .mailmeteor-tabla table { font-size: 0.82rem; }
+    .mailmeteor-tabla th { font-size: 0.75rem; }
+    .mailmeteor-tabla td { padding: 0.5rem 0.75rem; }
+
+    .info-box {
+      background: #ebf8ff; border: 1px solid #90cdf4; border-radius: 8px;
+      padding: 0.85rem 1rem; font-size: 0.85rem; color: #2b6cb0; margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+    .info-box strong { display: block; margin-bottom: 0.25rem; }
+
+    .modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap; margin-top: 1.25rem; }
     .btn-cancelar { padding: 0.5rem 1.25rem; background: none; border: 1px solid #cbd5e0; border-radius: 8px; cursor: pointer; }
-    input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
-    .loading { text-align: center; padding: 2rem; color: #718096; }
+
+    /* Invitación simple */
+    .alumno-card-sel {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.85rem;
+      border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .alumno-card-sel:hover { background: #f7fafc; }
+    .alumno-card-sel.seleccionado { background: #ebf8ff; border-color: #90cdf4; }
+    .alumno-card-sel .info { flex: 1; }
+    .alumno-card-sel .nombre { font-weight: 500; font-size: 0.9rem; }
+    .alumno-card-sel .sub    { font-size: 0.78rem; color: #718096; }
+
+    .grado-header {
+      font-size: 0.78rem; font-weight: 700; color: #718096; text-transform: uppercase;
+      letter-spacing: 0.05em; padding: 0.5rem 0 0.25rem; margin-top: 0.5rem;
+      border-bottom: 1px solid #edf2f7; margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
+
 <header>
   <div>
     <h1>🏫 Sistema de Intervención</h1>
     <span style="font-size:0.85rem; color:#718096;">Vista: Advisor</span>
   </div>
-  <div style="display:flex; align-items:center; gap:1rem;">
+  <div class="header-right">
+    <div class="reloj">
+      <div class="hora"  id="reloj-hora">00:00:00</div>
+      <div class="fecha" id="reloj-fecha"></div>
+    </div>
     <span id="nombre-usuario" style="font-size:0.85rem; color:#4a5568;"></span>
     <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
   </div>
 </header>
 
 <main>
+  <div class="alert" id="alerta"></div>
+
   <div class="resumen">
     <div class="stat peligro">
       <div class="numero" id="cnt-peligro">—</div>
@@ -92,54 +194,126 @@
       <div class="numero" id="cnt-felicitacion">—</div>
       <div class="etiqueta">🌟 Felicitaciones</div>
     </div>
+    <div class="stat urgente">
+      <div class="numero" id="cnt-urgente">—</div>
+      <div class="etiqueta">🚨 Urgentes</div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>📋 Casos reportados</h2>
-    <div class="filtros">
-      <select id="filtro-estado" onchange="renderTabla()">
-        <option value="">Todos los estados</option>
-        <option value="peligro">⚠️ En peligro</option>
-        <option value="reprobando">🔴 Reprobando</option>
-        <option value="felicitacion">🌟 Felicitación</option>
-      </select>
-      <select id="filtro-grado" onchange="renderTabla()">
-        <option value="">Todos los grados</option>
-      </select>
-      <select id="filtro-materia" onchange="renderTabla()">
-        <option value="">Todas las materias</option>
-      </select>
-      <button class="btn-correo" onclick="cargarReportes()" style="background:#718096;">🔄 Actualizar</button>
-    </div>
+  <div class="tabs">
+    <button class="tab active" onclick="cambiarTab('casos')">📋 Casos reportados</button>
+    <button class="tab"        onclick="cambiarTab('correos')">✉️ Generar correos</button>
+  </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-      <span id="seleccionados-label" style="font-size:0.85rem; color:#718096;">Selecciona casos para generar correo</span>
-      <button class="btn-correo" id="btn-generar" onclick="abrirModal()" disabled>✉️ Generar correo</button>
-    </div>
+  <!-- ─── TAB CASOS ─── -->
+  <div class="tab-content active" id="tab-casos">
+    <div class="card">
+      <h2>Casos reportados</h2>
+      <div class="filtros">
+        <select id="filtro-estado"  onchange="renderCasos()">
+          <option value="">Todos los estados</option>
+          <option value="peligro">⚠️ En peligro</option>
+          <option value="reprobando">🔴 Reprobando</option>
+          <option value="felicitacion">🌟 Felicitación</option>
+          <option value="urgente">🚨 Urgente</option>
+        </select>
+        <select id="filtro-grado"   onchange="renderCasos()">
+          <option value="">Todos los grados</option>
+        </select>
+        <select id="filtro-materia" onchange="renderCasos()">
+          <option value="">Todas las materias</option>
+        </select>
+        <button class="btn-secundario" onclick="cargarTodo()" style="padding:0.6rem 1rem;">🔄 Actualizar</button>
+      </div>
 
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:36px;"><input type="checkbox" id="check-all" onclick="toggleTodos()"></th>
-            <th>Fecha</th><th>Maestro</th><th>Alumno</th><th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-casos">
-          <tr><td colspan="8" class="loading">Cargando datos...</td></tr>
-        </tbody>
-      </table>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Maestro</th><th>Alumno</th>
+              <th>Grado</th><th>Materia</th><th>Estado</th><th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-casos">
+            <tr><td colspan="7" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB CORREOS ─── -->
+  <div class="tab-content" id="tab-correos">
+    <div class="card">
+      <h2>✉️ Generador de correos para Mailmeteor</h2>
+
+      <div class="info-box">
+        <strong>¿Cómo funciona?</strong>
+        Selecciona el tipo de correo, elige los alumnos y genera una tabla lista para pegar en tu hoja de Mailmeteor.
+        Mailmeteor usará las columnas <code>email</code>, <code>nombre</code> y <code>mensaje</code> para personalizar cada correo.
+      </div>
+
+      <p style="font-size:0.85rem; font-weight:600; color:#4a5568; margin-bottom:0.5rem;">Tipo de correo:</p>
+      <div class="tipo-correo-btns">
+        <button class="tipo-btn active" onclick="selTipo('invitacion')"        id="tipo-invitacion">📬 Invitación simple</button>
+        <button class="tipo-btn"        onclick="selTipo('situacion')"         id="tipo-situacion">⚠️ Con situación académica</button>
+        <button class="tipo-btn"        onclick="selTipo('felicitacion')"      id="tipo-felicitacion">🌟 Felicitación</button>
+        <button class="tipo-btn"        onclick="selTipo('urgente')"           id="tipo-urgente">🚨 Asesoría urgente</button>
+      </div>
+
+      <p style="font-size:0.85rem; font-weight:600; color:#4a5568; margin-bottom:0.5rem;">Destinatario:</p>
+      <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem;">
+        <button class="tipo-btn active" onclick="selDestinatario('alumno')"  id="dest-alumno">👤 Alumno</button>
+        <button class="tipo-btn"        onclick="selDestinatario('padres')"  id="dest-padres">👨‍👩‍👧 Padres</button>
+        <button class="tipo-btn"        onclick="selDestinatario('ambos')"   id="dest-ambos">👥 Ambos</button>
+      </div>
+
+      <p style="font-size:0.85rem; font-weight:600; color:#4a5568; margin-bottom:0.75rem;">Selecciona alumnos:</p>
+
+      <div class="filtros" style="margin-bottom:0.75rem;">
+        <select id="filtro-grado-correo" onchange="renderSelectorAlumnos()">
+          <option value="">Todos los grados</option>
+        </select>
+      </div>
+
+      <div id="selector-alumnos" style="max-height:320px; overflow-y:auto; margin-bottom:1.25rem;">
+        <div class="empty">Cargando alumnos...</div>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn-principal" onclick="generarTablaMailmeteor()">⚡ Generar tabla Mailmeteor</button>
+        <button class="btn-secundario" onclick="seleccionarTodosAlumnos()">Seleccionar todos</button>
+        <button class="btn-secundario" onclick="deseleccionarTodosAlumnos()">Deseleccionar todos</button>
+      </div>
     </div>
   </div>
 </main>
 
-<div class="modal-overlay" id="modal-overlay">
+<!-- Modal tabla Mailmeteor -->
+<div class="modal-overlay" id="modal-mailmeteor">
   <div class="modal">
-    <h3>✉️ Vista previa del correo</h3>
-    <textarea id="correo-preview" readonly></textarea>
+    <h3>📊 Tabla lista para Mailmeteor</h3>
+    <p class="subtitulo">Copia esta tabla y pégala en tu hoja de Google Sheets de Mailmeteor.</p>
+
+    <div class="info-box">
+      <strong>Pasos para usar con Mailmeteor:</strong>
+      1. Clic en "Copiar tabla" → pega en tu hoja de Mailmeteor (Ctrl+V)<br>
+      2. Asegúrate de que las columnas sean: <code>email</code> | <code>nombre</code> | <code>mensaje</code><br>
+      3. Abre Mailmeteor y envía tu campaña normalmente.
+    </div>
+
+    <div class="mailmeteor-tabla">
+      <table>
+        <thead>
+          <tr><th>#</th><th>email</th><th>nombre</th><th>mensaje</th></tr>
+        </thead>
+        <tbody id="tabla-mailmeteor"></tbody>
+      </table>
+    </div>
+
     <div class="modal-btns">
       <button class="btn-cancelar" onclick="cerrarModal()">Cerrar</button>
-      <button class="btn-correo" onclick="copiarCorreo()">📋 Copiar texto</button>
+      <button class="btn-verde"    onclick="copiarTablaMailmeteor()">📋 Copiar tabla</button>
     </div>
   </div>
 </div>
@@ -153,136 +327,287 @@
   if (!usuario || rol !== 'advisor') window.location.href = '../index.html';
   document.getElementById('nombre-usuario').textContent = nombre || usuario;
 
-  let todosLosCasos = [];
+  let todosReportes = [];
+  let todosAlumnos  = [];
+  let tipoCorreo    = 'invitacion';
+  let destinatario  = 'alumno';
+  let alumnosSeleccionados = new Set();
 
-  async function cargarReportes() {
-    document.getElementById('tabla-casos').innerHTML =
-      '<tr><td colspan="8" class="loading">Cargando datos...</td></tr>';
-    try {
-      const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({ accion:'obtenerReportes' }) });
-      const data = await res.json();
-      if (data.ok) {
-        todosLosCasos = data.reportes;
-        poblarFiltros();
-        renderTabla();
-        actualizarContadores();
-      }
-    } catch(e) {
-      document.getElementById('tabla-casos').innerHTML =
-        '<tr><td colspan="8" class="empty">Error al cargar datos.</td></tr>';
-    }
+  // ── RELOJ ──────────────────────────────────────────
+  function actualizarReloj() {
+    const ahora = new Date();
+    const hora  = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const fecha = ahora.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('reloj-hora').textContent  = hora;
+    document.getElementById('reloj-fecha').textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  }
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+
+  // ── PESTAÑAS ───────────────────────────────────────
+  function cambiarTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`).classList.add('active');
+    document.getElementById(`tab-${tab}`).classList.add('active');
   }
 
-  function poblarFiltros() {
-    const grados   = [...new Set(todosLosCasos.map(c => c.grado))].sort();
-    const materias = [...new Set(todosLosCasos.map(c => c.materia))].sort();
+  function mostrarAlerta(msg, tipo) {
+    const a = document.getElementById('alerta');
+    a.textContent = msg;
+    a.className = `alert ${tipo}`;
+    a.style.display = 'block';
+    setTimeout(() => a.style.display = 'none', 4000);
+  }
+
+  async function api(body) {
+    const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
+
+  // ── CARGA INICIAL ──────────────────────────────────
+  async function cargarTodo() {
+    const [rR, rA, rG, rM] = await Promise.all([
+      api({ accion: 'obtenerReportes' }),
+      api({ accion: 'obtenerAlumnos' }),
+      api({ accion: 'obtenerGrados' }),
+      api({ accion: 'obtenerMaterias' })
+    ]);
+
+    todosReportes = rR.reportes || [];
+    todosAlumnos  = rA.alumnos  || [];
+
+    // Filtros de casos
     const selG = document.getElementById('filtro-grado');
     const selM = document.getElementById('filtro-materia');
     selG.innerHTML = '<option value="">Todos los grados</option>';
     selM.innerHTML = '<option value="">Todas las materias</option>';
-    grados.forEach(g   => { const o = document.createElement('option'); o.value = o.textContent = g;   selG.appendChild(o); });
-    materias.forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m;   selM.appendChild(o); });
+    (rG.grados   || []).forEach(g => { const o = document.createElement('option'); o.value = o.textContent = g; selG.appendChild(o); });
+    (rM.materias || []).forEach(m => { const o = document.createElement('option'); o.value = o.textContent = m; selM.appendChild(o); });
+
+    // Filtro de grado en correos
+    const selGC = document.getElementById('filtro-grado-correo');
+    selGC.innerHTML = '<option value="">Todos los grados</option>';
+    (rG.grados || []).forEach(g => { const o = document.createElement('option'); o.value = o.textContent = g; selGC.appendChild(o); });
+
+    actualizarContadores();
+    renderCasos();
+    renderSelectorAlumnos();
   }
 
-  function casosFiltrados() {
+  // ── CONTADORES ─────────────────────────────────────
+  function actualizarContadores() {
+    document.getElementById('cnt-peligro').textContent    = todosReportes.filter(r => r.estado === 'peligro').length;
+    document.getElementById('cnt-reprobando').textContent = todosReportes.filter(r => r.estado === 'reprobando').length;
+    document.getElementById('cnt-felicitacion').textContent = todosReportes.filter(r => r.estado === 'felicitacion').length;
+    document.getElementById('cnt-urgente').textContent    = todosReportes.filter(r => r.estado === 'urgente').length;
+  }
+
+  // ── TABLA DE CASOS ─────────────────────────────────
+  function renderCasos() {
     const fe = document.getElementById('filtro-estado').value;
     const fg = document.getElementById('filtro-grado').value;
     const fm = document.getElementById('filtro-materia').value;
-    return todosLosCasos.filter(c =>
-      (!fe || c.estado === fe) &&
-      (!fg || c.grado === fg) &&
-      (!fm || c.materia === fm)
+    const filtrados = todosReportes.filter(r =>
+      (!fe || r.estado === fe) && (!fg || r.grado === fg) && (!fm || r.materia === fm)
     );
-  }
-
-  function actualizarContadores() {
-    document.getElementById('cnt-peligro').textContent     = todosLosCasos.filter(c => c.estado === 'peligro').length;
-    document.getElementById('cnt-reprobando').textContent  = todosLosCasos.filter(c => c.estado === 'reprobando').length;
-    document.getElementById('cnt-felicitacion').textContent= todosLosCasos.filter(c => c.estado === 'felicitacion').length;
-  }
-
-  function renderTabla() {
-    const etiquetas = { peligro:'⚠️ En peligro', reprobando:'🔴 Reprobando', felicitacion:'🌟 Felicitación' };
-    const filtrados = casosFiltrados();
+    const etiquetas = { peligro:'⚠️ En peligro', reprobando:'🔴 Reprobando', felicitacion:'🌟 Felicitación', urgente:'🚨 Urgente' };
     const tbody = document.getElementById('tabla-casos');
     if (filtrados.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay casos registrados.</td></tr>';
-    } else {
-      tbody.innerHTML = filtrados.map((c, i) => `
-        <tr>
-          <td><input type="checkbox" class="check-caso" data-index="${i}" onchange="actualizarSeleccion()"></td>
-          <td style="font-size:0.8rem; color:#718096;">${c.fecha}</td>
-          <td>${c.maestro}</td><td>${c.alumno}</td><td>${c.grado}</td><td>${c.materia}</td>
-          <td><span class="badge ${c.estado}">${etiquetas[c.estado]}</span></td>
-          <td>${c.obs || '—'}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">No hay casos con los filtros seleccionados.</td></tr>';
+      return;
     }
-    actualizarSeleccion();
+    tbody.innerHTML = filtrados.map(r => `
+      <tr>
+        <td style="font-size:0.8rem; color:#718096;">${r.fecha}</td>
+        <td>${r.maestro}</td>
+        <td><strong>${r.alumno}</strong></td>
+        <td>${r.grado}</td>
+        <td>${r.materia}</td>
+        <td><span class="badge ${r.estado}">${etiquetas[r.estado] || r.estado}</span></td>
+        <td>${r.obs || '—'}</td>
+      </tr>`).join('');
   }
 
-  function toggleTodos() {
-    const todos = document.getElementById('check-all').checked;
-    document.querySelectorAll('.check-caso').forEach(c => c.checked = todos);
-    actualizarSeleccion();
+  // ── TIPO DE CORREO Y DESTINATARIO ──────────────────
+  function selTipo(tipo) {
+    tipoCorreo = tipo;
+    document.querySelectorAll('.tipo-btn[id^="tipo-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tipo-${tipo}`).classList.add('active');
+    renderSelectorAlumnos();
   }
 
-  function actualizarSeleccion() {
-    const n = document.querySelectorAll('.check-caso:checked').length;
-    document.getElementById('seleccionados-label').textContent =
-      n === 0 ? 'Selecciona casos para generar correo' : `${n} caso(s) seleccionado(s)`;
-    document.getElementById('btn-generar').disabled = n === 0;
+  function selDestinatario(dest) {
+    destinatario = dest;
+    document.querySelectorAll('.tipo-btn[id^="dest-"]').forEach(b => b.classList.remove('active'));
+    document.getElementById(`dest-${dest}`).classList.add('active');
   }
 
-  function seleccionadosData() {
-    const filtrados = casosFiltrados();
-    return [...document.querySelectorAll('.check-caso:checked')]
-      .map(c => filtrados[parseInt(c.dataset.index)]);
-  }
+  // ── SELECTOR DE ALUMNOS ────────────────────────────
+  function renderSelectorAlumnos() {
+    const filtroGrado = document.getElementById('filtro-grado-correo').value;
+    const contenedor  = document.getElementById('selector-alumnos');
 
-  function abrirModal() {
-    const datos = seleccionadosData();
-    const lineas = datos.map(c => {
-      if (c.estado === 'felicitacion')
-        return `• ${c.alumno} (${c.grado}) — ${c.materia}: desempeño sobresaliente. ${c.obs}`;
-      const est = c.estado === 'reprobando' ? 'está reprobando' : 'está en peligro de reprobar';
-      return `• ${c.alumno} (${c.grado}) — ${c.materia} ${est}. ${c.obs}`;
+    // Para tipos con situación académica, mostrar solo alumnos con reportes del tipo
+    let alumnosMostrar = todosAlumnos;
+    if (tipoCorreo === 'situacion') {
+      const conReporte = new Set(todosReportes
+        .filter(r => r.estado === 'peligro' || r.estado === 'reprobando' || r.estado === 'urgente')
+        .map(r => r.alumno));
+      alumnosMostrar = todosAlumnos.filter(a => conReporte.has(`${a.nombre} ${a.apellido}`));
+    } else if (tipoCorreo === 'felicitacion') {
+      const conFelici = new Set(todosReportes.filter(r => r.estado === 'felicitacion').map(r => r.alumno));
+      alumnosMostrar = todosAlumnos.filter(a => conFelici.has(`${a.nombre} ${a.apellido}`));
+    } else if (tipoCorreo === 'urgente') {
+      const conUrgente = new Set(todosReportes.filter(r => r.estado === 'urgente').map(r => r.alumno));
+      alumnosMostrar = todosAlumnos.filter(a => conUrgente.has(`${a.nombre} ${a.apellido}`));
+    }
+
+    if (filtroGrado) alumnosMostrar = alumnosMostrar.filter(a => a.grado === filtroGrado);
+
+    if (alumnosMostrar.length === 0) {
+      contenedor.innerHTML = '<div class="empty">No hay alumnos disponibles para este tipo de correo.</div>';
+      return;
+    }
+
+    // Agrupar por grado
+    const porGrado = {};
+    alumnosMostrar.forEach(a => {
+      if (!porGrado[a.grado]) porGrado[a.grado] = [];
+      porGrado[a.grado].push(a);
     });
-    const tipoUnico = [...new Set(datos.map(d => d.estado))];
-    let asunto, intro;
-    if (tipoUnico.length === 1 && tipoUnico[0] === 'felicitacion') {
-      asunto = 'Reconocimiento al desempeño académico';
-      intro  = 'Me complace informarle que los siguientes alumnos han mostrado un desempeño sobresaliente:';
+
+    contenedor.innerHTML = Object.keys(porGrado).sort().map(grado => `
+      <div class="grado-header">${grado}</div>
+      ${porGrado[grado].map(a => {
+        const key  = `${a.nombre} ${a.apellido}`;
+        const sel  = alumnosSeleccionados.has(key);
+        const reps = todosReportes.filter(r => r.alumno === key);
+        const sub  = reps.length > 0
+          ? reps.map(r => r.materia).join(', ')
+          : 'Sin reportes académicos';
+        return `
+          <div class="alumno-card-sel ${sel ? 'seleccionado' : ''}" onclick="toggleAlumnoCorreo('${key}', this)">
+            <input type="checkbox" ${sel ? 'checked' : ''} onclick="event.stopPropagation(); toggleAlumnoCorreo('${key}', this.closest('.alumno-card-sel'))">
+            <div class="info">
+              <div class="nombre">${key}</div>
+              <div class="sub">${grado} · ${sub}</div>
+            </div>
+          </div>`;
+      }).join('')}
+    `).join('');
+  }
+
+  function toggleAlumnoCorreo(key, el) {
+    if (alumnosSeleccionados.has(key)) {
+      alumnosSeleccionados.delete(key);
+      el.classList.remove('seleccionado');
+      el.querySelector('input[type="checkbox"]').checked = false;
     } else {
-      asunto = 'Intervención académica — seguimiento requerido';
-      intro  = 'Le informamos que los siguientes alumnos requieren atención o intervención académica:';
+      alumnosSeleccionados.add(key);
+      el.classList.add('seleccionado');
+      el.querySelector('input[type="checkbox"]').checked = true;
     }
-    document.getElementById('correo-preview').value =
-`Asunto: ${asunto}
-
-Estimado/a padre/madre de familia:
-
-${intro}
-
-${lineas.join('\n')}
-
-Le invitamos a comunicarse con el advisor del grupo para coordinar una reunión de seguimiento.
-
-Atentamente,
-Departamento de Intervención`;
-    document.getElementById('modal-overlay').classList.add('open');
   }
 
-  function cerrarModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-
-  function copiarCorreo() {
-    navigator.clipboard.writeText(document.getElementById('correo-preview').value)
-      .then(() => alert('¡Texto copiado al portapapeles!'));
+  function seleccionarTodosAlumnos() {
+    document.querySelectorAll('.alumno-card-sel').forEach(el => {
+      const nombre = el.querySelector('.nombre').textContent;
+      alumnosSeleccionados.add(nombre);
+      el.classList.add('seleccionado');
+      el.querySelector('input[type="checkbox"]').checked = true;
+    });
   }
 
+  function deseleccionarTodosAlumnos() {
+    alumnosSeleccionados.clear();
+    document.querySelectorAll('.alumno-card-sel').forEach(el => {
+      el.classList.remove('seleccionado');
+      el.querySelector('input[type="checkbox"]').checked = false;
+    });
+  }
+
+  // ── GENERAR TABLA MAILMETEOR ───────────────────────
+  function generarTablaMailmeteor() {
+    if (alumnosSeleccionados.size === 0) {
+      mostrarAlerta('Selecciona al menos un alumno.', 'error'); return;
+    }
+
+    const filas = [];
+    alumnosSeleccionados.forEach(nombreCompleto => {
+      const alumno = todosAlumnos.find(a => `${a.nombre} ${a.apellido}` === nombreCompleto);
+      if (!alumno) return;
+
+      const reportesAlumno = todosReportes.filter(r => r.alumno === nombreCompleto);
+      const mensaje = generarMensaje(alumno, reportesAlumno);
+
+      const emails = [];
+      if (destinatario === 'alumno' || destinatario === 'ambos') {
+        if (alumno.correo_alumno) emails.push({ email: alumno.correo_alumno, nombre: nombreCompleto, mensaje });
+      }
+      if (destinatario === 'padres' || destinatario === 'ambos') {
+        if (alumno.correo_padres) emails.push({ email: alumno.correo_padres, nombre: `Padres de ${nombreCompleto}`, mensaje });
+      }
+      filas.push(...emails);
+    });
+
+    if (filas.length === 0) {
+      mostrarAlerta('Ninguno de los alumnos seleccionados tiene correo registrado.', 'error'); return;
+    }
+
+    const tbody = document.getElementById('tabla-mailmeteor');
+    tbody.innerHTML = filas.map((f, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${f.email}</td>
+        <td>${f.nombre}</td>
+        <td style="max-width:300px; white-space:pre-wrap; font-size:0.78rem;">${f.mensaje}</td>
+      </tr>`).join('');
+
+    document.getElementById('modal-mailmeteor').classList.add('open');
+  }
+
+  function generarMensaje(alumno, reportes) {
+    const n = `${alumno.nombre} ${alumno.apellido}`;
+    if (tipoCorreo === 'invitacion') {
+      return `Estimado/a ${n},\n\nTe invitamos a participar en una sesión de intervención esta semana. Tu presencia es importante para nosotros.\n\nPor favor confirma tu asistencia con tu advisor.\n\nAtentamente,\nDepartamento de Intervención`;
+    }
+    if (tipoCorreo === 'felicitacion') {
+      const mats = reportes.filter(r => r.estado === 'felicitacion').map(r => r.materia).join(', ');
+      return `Estimado/a ${n},\n\n¡Felicitaciones! Has demostrado un desempeño sobresaliente en: ${mats}.\n\nTu esfuerzo y dedicación son un ejemplo para toda la comunidad escolar.\n\nAtentamente,\nDepartamento de Intervención`;
+    }
+    if (tipoCorreo === 'urgente') {
+      return `Estimado/a ${n},\n\nNos comunicamos para informarte que requieres una sesión de asesoría URGENTE.\n\nPor favor preséntate con tu advisor a la brevedad posible.\n\nAtentamente,\nDepartamento de Intervención`;
+    }
+    if (tipoCorreo === 'situacion') {
+      const reprobando = reportes.filter(r => r.estado === 'reprobando').map(r => r.materia);
+      const peligro    = reportes.filter(r => r.estado === 'peligro').map(r => r.materia);
+      let detalle = '';
+      if (reprobando.length > 0) detalle += `\n• Reprobando: ${reprobando.join(', ')}`;
+      if (peligro.length    > 0) detalle += `\n• En peligro de reprobar: ${peligro.join(', ')}`;
+      return `Estimado/a ${n},\n\nTe informamos que tienes la siguiente situación académica:${detalle}\n\nTe invitamos a una sesión de intervención para apoyarte y encontrar juntos una solución.\n\nAtentamente,\nDepartamento de Intervención`;
+    }
+    return '';
+  }
+
+  function copiarTablaMailmeteor() {
+    const filas = document.querySelectorAll('#tabla-mailmeteor tr');
+    const tsv   = ['email\tnombre\tmensaje'];
+    filas.forEach(fila => {
+      const celdas = fila.querySelectorAll('td');
+      if (celdas.length >= 4) {
+        tsv.push(`${celdas[1].textContent}\t${celdas[2].textContent}\t${celdas[3].textContent}`);
+      }
+    });
+    navigator.clipboard.writeText(tsv.join('\n'))
+      .then(() => mostrarAlerta('✅ Tabla copiada. Pégala en tu hoja de Mailmeteor.', 'success'));
+    cerrarModal();
+  }
+
+  function cerrarModal() { document.getElementById('modal-mailmeteor').classList.remove('open'); }
   function cerrarSesion() { sessionStorage.clear(); window.location.href = '../index.html'; }
 
-  cargarReportes();
+  cargarTodo();
 </script>
 </body>
 </html>
