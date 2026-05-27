@@ -170,6 +170,7 @@
     <button class="tab"        onclick="cambiarTab('alumnos')">🎓 Alumnos</button>
     <button class="tab"        onclick="cambiarTab('grados')">🏷️ Grados</button>
     <button class="tab"        onclick="cambiarTab('materias')">📚 Materias</button>
+    <button class="tab"        onclick="cambiarTab('asignaciones')">🔗 Asignaciones</button>
   </div>
 
   <!-- ─── USUARIOS ─── -->
@@ -306,7 +307,58 @@
   </div>
 
 </main>
+<!-- ─── ASIGNACIONES ─── -->
+  <div class="tab-content" id="tab-asignaciones">
+    <div class="card">
+      <h2>Agregar asignación</h2>
+      <p style="font-size:0.85rem; color:#718096; margin-bottom:1rem;">
+        Define qué maestro imparte cada materia en cada grado. El formulario de evaluación usará esta lista para mostrarle al alumno sus materias correctamente.
+      </p>
+      <div class="form-inline">
+        <div class="form-group">
+          <label>Grado</label>
+          <select id="new-asig-grado">
+            <option value="">— Selecciona grado —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Materia</label>
+          <select id="new-asig-materia">
+            <option value="">— Selecciona materia —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Maestro (usuario)</label>
+          <select id="new-asig-maestro">
+            <option value="">— Selecciona maestro —</option>
+          </select>
+        </div>
+        <button class="btn-agregar" onclick="agregarAsignacion()">+ Agregar</button>
+      </div>
+    </div>
 
+    <div class="card">
+      <h2>Asignaciones registradas</h2>
+      <div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
+        <select id="filtro-asig-grado" onchange="renderAsignaciones()" style="width:auto;">
+          <option value="">Todos los grados</option>
+        </select>
+        <select id="filtro-asig-materia" onchange="renderAsignaciones()" style="width:auto;">
+          <option value="">Todas las materias</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>Grado</th><th>Materia</th><th>Maestro</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tabla-asignaciones">
+            <tr><td colspan="4" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 <!-- Modal editar usuario -->
 <div class="modal-overlay" id="modal-usuario">
   <div class="modal">
@@ -621,12 +673,123 @@
     }
   });
 
-  // Iniciar
+  // ══════════════════════════════════════════════════
+  //  ASIGNACIONES
+  // ══════════════════════════════════════════════════
+  let todasAsignaciones = [];
+
+  async function cargarAsignaciones() {
+    const [dA, dG, dM, dU] = await Promise.all([
+      api({ accion: 'obtenerAsignaciones' }),
+      api({ accion: 'obtenerGrados' }),
+      api({ accion: 'obtenerMaterias' }),
+      api({ accion: 'obtenerUsuarios' })
+    ]);
+
+    todasAsignaciones = dA.asignaciones || [];
+
+    // Poblar selects del formulario
+    const selGrado   = document.getElementById('new-asig-grado');
+    const selMateria = document.getElementById('new-asig-materia');
+    const selMaestro = document.getElementById('new-asig-maestro');
+
+    selGrado.innerHTML   = '<option value="">— Selecciona grado —</option>';
+    selMateria.innerHTML = '<option value="">— Selecciona materia —</option>';
+    selMaestro.innerHTML = '<option value="">— Selecciona maestro —</option>';
+
+    (dG.grados   || []).forEach(g => {
+      const o = document.createElement('option');
+      o.value = o.textContent = g;
+      selGrado.appendChild(o);
+    });
+    (dM.materias || []).forEach(m => {
+      const o = document.createElement('option');
+      o.value = o.textContent = m;
+      selMateria.appendChild(o);
+    });
+    (dU.usuarios || []).filter(u => u.rol === 'maestro').forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.usuario;
+      o.textContent = `${u.nombre} (${u.usuario})`;
+      selMaestro.appendChild(o);
+    });
+
+    // Poblar filtros de tabla
+    const filtroG = document.getElementById('filtro-asig-grado');
+    const filtroM = document.getElementById('filtro-asig-materia');
+    filtroG.innerHTML = '<option value="">Todos los grados</option>';
+    filtroM.innerHTML = '<option value="">Todas las materias</option>';
+    (dG.grados   || []).forEach(g => {
+      const o = document.createElement('option'); o.value = o.textContent = g; filtroG.appendChild(o);
+    });
+    (dM.materias || []).forEach(m => {
+      const o = document.createElement('option'); o.value = o.textContent = m; filtroM.appendChild(o);
+    });
+
+    renderAsignaciones();
+  }
+
+  function renderAsignaciones() {
+    const fg = document.getElementById('filtro-asig-grado').value;
+    const fm = document.getElementById('filtro-asig-materia').value;
+    const filtradas = todasAsignaciones.filter(a =>
+      (!fg || a.grado === fg) && (!fm || a.materia === fm)
+    );
+    const tbody = document.getElementById('tabla-asignaciones');
+    if (filtradas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">No hay asignaciones registradas.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtradas.map((a, i) => `
+      <tr>
+        <td>${a.grado}</td>
+        <td>${a.materia}</td>
+        <td>${a.maestro}</td>
+        <td><button class="btn-eliminar" onclick="eliminarAsignacion(${todasAsignaciones.indexOf(a)}, '${a.grado}', '${a.materia}')">🗑 Eliminar</button></td>
+      </tr>`).join('');
+  }
+
+  async function agregarAsignacion() {
+    const grado   = document.getElementById('new-asig-grado').value;
+    const materia = document.getElementById('new-asig-materia').value;
+    const maestro = document.getElementById('new-asig-maestro').value;
+    if (!grado || !materia || !maestro) {
+      mostrarAlerta('Por favor selecciona grado, materia y maestro.', 'error'); return;
+    }
+    // Verificar duplicado
+    const existe = todasAsignaciones.some(a =>
+      a.grado === grado && a.materia === materia && a.maestro === maestro
+    );
+    if (existe) {
+      mostrarAlerta('Esa asignación ya existe.', 'error'); return;
+    }
+    const data = await api({ accion: 'agregarAsignacion', grado, materia, maestro });
+    if (data.ok) {
+      mostrarAlerta('✅ Asignación agregada.', 'success');
+      cargarAsignaciones();
+    } else {
+      mostrarAlerta(data.error || 'Error al agregar.', 'error');
+    }
+  }
+
+  async function eliminarAsignacion(index, grado, materia) {
+    if (!confirm(`¿Eliminar la asignación de "${materia}" en "${grado}"?`)) return;
+    const data = await api({ accion: 'eliminarAsignacion', index: parseInt(index) });
+    if (data.ok) {
+      mostrarAlerta('✅ Asignación eliminada.', 'success');
+      cargarAsignaciones();
+    } else {
+      mostrarAlerta(data.error || 'Error al eliminar.', 'error');
+    }
+  }
+
+  // ── Inicio ──────────────────────────────────────────
   cargarUsuarios();
   cargarAlumnos();
   cargarGrados();
   cargarMaterias();
   poblarFiltroGrados();
+  cargarAsignaciones();
 </script>
 </body>
 </html>
