@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados — Evaluación Docente</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    header {
+      background: white; border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 1.1rem; color: #1a202c; }
+    .header-right { display: flex; align-items: center; gap: 1.5rem; }
+    .reloj { text-align: right; line-height: 1.2; }
+    .reloj .hora  { font-size: 1.3rem; font-weight: 700; color: #2d3748; font-variant-numeric: tabular-nums; }
+    .reloj .fecha { font-size: 0.75rem; color: #718096; }
+    .btn-salir {
+      background: none; border: 1px solid #cbd5e0;
+      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: #4a5568;
+    }
+
+    main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+
+    .filtros-bar {
+      background: white; border-radius: 12px; padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+      display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;
+    }
+    .filtro-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .filtro-group label { font-size: 0.78rem; font-weight: 600; color: #4a5568; }
+    select {
+      padding: 0.55rem 0.75rem; border: 1px solid #cbd5e0;
+      border-radius: 8px; font-size: 0.9rem; background: white; outline: none;
+    }
+    select:focus { border-color: #4299e1; }
+    .btn-aplicar {
+      padding: 0.55rem 1.25rem; background: #3182ce; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
+      font-weight: 600; align-self: flex-end;
+    }
+    .btn-aplicar:hover { background: #2b6cb0; }
+
+    /* Índices generales */
+    .indices-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .indice-card {
+      background: white; border-radius: 12px; padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); cursor: pointer;
+      transition: all 0.2s; border: 2px solid transparent;
+      position: relative; overflow: hidden;
+    }
+    .indice-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    .indice-card.active { border-color: #3182ce; }
+    .indice-card .nombre { font-size: 0.82rem; font-weight: 600; color: #718096; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .indice-card .valor  { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .indice-card .sub    { font-size: 0.78rem; color: #a0aec0; }
+    .indice-card .barra-bg { height: 4px; background: #edf2f7; border-radius: 4px; margin-top: 0.75rem; }
+    .indice-card .barra-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .indice-card .click-hint {
+      position: absolute; bottom: 0.6rem; right: 0.75rem;
+      font-size: 0.72rem; color: #cbd5e0;
+    }
+    .claridad   .valor { color: #2b6cb0; }
+    .claridad   .barra-fill { background: #3182ce; }
+    .ambiente   .valor { color: #276749; }
+    .ambiente   .barra-fill { background: #38a169; }
+    .engagement .valor { color: #c05621; }
+    .engagement .barra-fill { background: #ed8936; }
+
+    /* Panel de detalle */
+    .detalle-panel {
+      background: white; border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+      display: none;
+    }
+    .detalle-panel.visible { display: block; }
+    .detalle-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.25rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid #edf2f7;
+    }
+    .detalle-header h2 { font-size: 1rem; color: #2d3748; }
+    .btn-cerrar-detalle {
+      background: none; border: none; font-size: 1.2rem;
+      cursor: pointer; color: #a0aec0; padding: 0.25rem;
+    }
+
+    /* Preguntas detalle */
+    .pregunta-detalle { margin-bottom: 1rem; }
+    .pregunta-detalle .ptexto {
+      font-size: 0.85rem; color: #4a5568; margin-bottom: 0.4rem;
+    }
+    .pregunta-detalle .pbarra-wrap {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .pregunta-detalle .pbarra-bg {
+      flex: 1; height: 10px; background: #edf2f7; border-radius: 6px; overflow: hidden;
+    }
+    .pregunta-detalle .pbarra-fill {
+      height: 100%; border-radius: 6px; transition: width 0.6s ease;
+    }
+    .pregunta-detalle .pvalor {
+      font-size: 0.9rem; font-weight: 700; min-width: 32px; text-align: right;
+    }
+    .pregunta-detalle .pconteo {
+      font-size: 0.75rem; color: #a0aec0; min-width: 60px;
+    }
+
+    /* Tabla de maestros */
+    .card {
+      background: white; border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1rem; color: #2d3748; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #edf2f7; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th {
+      text-align: left; padding: 0.6rem 0.75rem; background: #f7fafc;
+      color: #4a5568; font-size: 0.78rem; font-weight: 600;
+      border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    td { padding: 0.7rem 0.75rem; border-bottom: 1px solid #edf2f7; color: #2d3748; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f7fafc; }
+
+    .score-pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+    }
+    .score-alto  { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+    .score-medio { background: #fffaf0; color: #c05621; border: 1px solid #fbd38d; }
+    .score-bajo  { background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; }
+
+    .empty { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+    .cargando { text-align: center; padding: 3rem; color: #718096; }
+
+    /* Comentarios */
+    .comentario-item {
+      padding: 0.75rem 1rem; border-left: 3px solid #e2e8f0;
+      margin-bottom: 0.75rem; font-size: 0.88rem; color: #4a5568;
+      background: #f7fafc; border-radius: 0 8px 8px 0;
+    }
+    .comentario-meta { font-size: 0.75rem; color: #a0aec0; margin-top: 0.3rem; }
+
+    .chart-wrapper { position: relative; height: 220px; margin-top: 1rem; }
+
+    @media (max-width: 640px) {
+      .indices-grid { grid-template-columns: 1fr; }
+      .filtros-bar  { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📊 Resultados — Evaluación Docente</h1>
+    <span style="font-size:0.85rem; color:#718096;" id="label-rol"></span>
+  </div>
+  <div class="header-right">
+    <div class="reloj">
+      <div class="hora"  id="reloj-hora">00:00:00</div>
+      <div class="fecha" id="reloj-fecha"></div>
+    </div>
+    <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <div class="filtro-group">
+      <label>Semestre</label>
+      <select id="fil-semestre"><option value="">Todos</option></select>
+    </div>
+    <div class="filtro-group" id="wrap-grado">
+      <label>Grado</label>
+      <select id="fil-grado"><option value="">Todos</option></select>
+    </div>
+    <div class="filtro-group" id="wrap-maestro">
+      <label>Maestro</label>
+      <select id="fil-maestro"><option value="">Todos</option></select>
+    </div>
+    <div class="filtro-group">
+      <label>Materia</label>
+      <select id="fil-materia"><option value="">Todas</option></select>
+    </div>
+    <button class="btn-aplicar" onclick="aplicarFiltros()">🔍 Aplicar</button>
+  </div>
+
+  <!-- Índices generales -->
+  <div class="indices-grid">
+    <div class="indice-card claridad" onclick="abrirDetalle('claridad')">
+      <div class="nombre">📘 Clarity index</div>
+      <div class="valor" id="val-claridad">—</div>
+      <div class="sub" id="sub-claridad">Q1 · Q2 · Q3</div>
+      <div class="barra-bg"><div class="barra-fill" id="bar-claridad" style="width:0%"></div></div>
+      <div class="click-hint">Click for detail ↓</div>
+    </div>
+    <div class="indice-card ambiente" onclick="abrirDetalle('ambiente')">
+      <div class="nombre">🌱 Environment index</div>
+      <div class="valor" id="val-ambiente">—</div>
+      <div class="sub" id="sub-ambiente">Q4 · Q5 · Q6</div>
+      <div class="barra-bg"><div class="barra-fill" id="bar-ambiente" style="width:0%"></div></div>
+      <div class="click-hint">Click for detail ↓</div>
+    </div>
+    <div class="indice-card engagement" onclick="abrirDetalle('engagement')">
+      <div class="nombre">🔥 Engagement index</div>
+      <div class="valor" id="val-engagement">—</div>
+      <div class="sub" id="sub-engagement">Q7 · Q8</div>
+      <div class="barra-bg"><div class="barra-fill" id="bar-engagement" style="width:0%"></div></div>
+      <div class="click-hint">Click for detail ↓</div>
+    </div>
+  </div>
+
+  <!-- Panel detalle por índice -->
+  <div class="detalle-panel" id="detalle-panel">
+    <div class="detalle-header">
+      <h2 id="detalle-titulo">Detalle</h2>
+      <button class="btn-cerrar-detalle" onclick="cerrarDetalle()">✕</button>
+    </div>
+    <div id="detalle-contenido"></div>
+  </div>
+
+  <!-- Tabla por maestro -->
+  <div class="card">
+    <h2 id="tabla-titulo">Resultados por maestro</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Responses</th>
+            <th>Clarity</th>
+            <th>Environment</th>
+            <th>Engagement</th>
+            <th>Overall</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-resultados">
+          <tr><td colspan="8" class="cargando">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Comentarios -->
+  <div class="card" id="card-comentarios" style="display:none;">
+    <h2>💬 Student comments</h2>
+    <div id="lista-comentarios"></div>
+  </div>
+
+</main>
+
+<script>
+  const API_URL = 'TU_URL_AQUI';
+
+  const usuario = sessionStorage.getItem('usuario') || sessionStorage.getItem('eval_usuario');
+  const rol     = sessionStorage.getItem('rol')     || sessionStorage.getItem('eval_rol');
+  const nombre  = sessionStorage.getItem('nombre');
+
+  if (!usuario) window.location.href = '../../index.html';
+
+  document.getElementById('label-rol').textContent =
+    rol === 'maestro' ? `Mis resultados — ${nombre || usuario}` :
+    rol === 'advisor' ? 'Vista Advisor' : 'Vista Admin';
+
+  // Ocultar filtros según rol
+  if (rol === 'maestro') {
+    document.getElementById('wrap-maestro').style.display = 'none';
+    document.getElementById('wrap-grado').style.display   = 'none';
+  }
+
+  let todosRegistros = [];
+  let registrosFiltrados = [];
+  let detalleActivo = null;
+  let chartInstance = null;
+
+  const PREGUNTAS = [
+    { id:'q1', texto:'My teacher explains things clearly.',                      indice:'claridad'   },
+    { id:'q2', texto:'My teacher is knowledgeable about the subject.',           indice:'claridad'   },
+    { id:'q3', texto:'The feedback I receive helps me improve.',                 indice:'claridad'   },
+    { id:'q4', texto:'I feel respected and valued in this class.',               indice:'ambiente'   },
+    { id:'q5', texto:'I feel comfortable asking questions or sharing my ideas.', indice:'ambiente'   },
+    { id:'q6', texto:'This class is well organized and focused.',                indice:'ambiente'   },
+    { id:'q7', texto:'My teacher makes the class interesting and engaging.',     indice:'engagement' },
+    { id:'q8', texto:'I feel appropriately challenged in this class.',           indice:'engagement' },
+  ];
+
+  // ── RELOJ ──────────────────────────────────────────
+  function actualizarReloj() {
+    const ahora = new Date();
+    const hora  = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const fecha = ahora.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('reloj-hora').textContent  = hora;
+    document.getElementById('reloj-fecha').textContent = fecha.charAt(0).toUpperCase() + fecha.slice(1);
+  }
+  actualizarReloj();
+  setInterval(actualizarReloj, 1000);
+
+  // ── API ────────────────────────────────────────────
+  async function api(body) {
+    const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
+    return res.json();
+  }
+
+  // ── CARGA INICIAL ──────────────────────────────────
+  async function cargarDatos() {
+    const filtro = {};
+    if (rol === 'maestro') filtro.maestro = usuario;
+
+    const [rR, rS, rG, rM] = await Promise.all([
+      api({ accion: 'obtenerResultados', ...filtro }),
+      api({ accion: 'obtenerSemestres' }),
+      api({ accion: 'obtenerGrados' }),
+      api({ accion: 'obtenerMaterias' })
+    ]);
+
+    todosRegistros = rR.registros || [];
+
+    // Poblar filtros
+    const filS = document.getElementById('fil-semestre');
+    const filG = document.getElementById('fil-grado');
+    const filMa= document.getElementById('fil-maestro');
+    const filMt= document.getElementById('fil-materia');
+
+    (rS.semestres || []).forEach(s => {
+      const o = document.createElement('option'); o.value = o.textContent = s; filS.appendChild(o);
+    });
+    (rG.grados || []).forEach(g => {
+      const o = document.createElement('option'); o.value = o.textContent = g; filG.appendChild(o);
+    });
+    (rM.materias || []).forEach(m => {
+      const o = document.createElement('option'); o.value = o.textContent = m; filMt.appendChild(o);
+    });
+
+    // Maestros únicos de los registros
+    if (rol !== 'maestro') {
+      const maestros = [...new Set(todosRegistros.map(r => r.maestro))].sort();
+      maestros.forEach(m => {
+        const o = document.createElement('option'); o.value = o.textContent = m; filMa.appendChild(o);
+      });
+    }
+
+    aplicarFiltros();
+  }
+
+  // ── FILTROS ────────────────────────────────────────
+  function aplicarFiltros() {
+    const fS  = document.getElementById('fil-semestre').value;
+    const fG  = document.getElementById('fil-grado').value;
+    const fMa = rol !== 'maestro' ? document.getElementById('fil-maestro').value : usuario;
+    const fMt = document.getElementById('fil-materia').value;
+
+    registrosFiltrados = todosRegistros.filter(r =>
+      (!fS  || r.semestre === fS)  &&
+      (!fG  || r.grado    === fG)  &&
+      (!fMa || r.maestro  === fMa) &&
+      (!fMt || r.materia  === fMt)
+    );
+
+    calcularYMostrar();
+    if (detalleActivo) abrirDetalle(detalleActivo);
+  }
+
+  // ── CÁLCULOS ───────────────────────────────────────
+  function promedio(registros, campos) {
+    const vals = registros.flatMap(r => campos.map(c => r[c])).filter(v => v > 0);
+    if (vals.length === 0) return 0;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+
+  function promedioPregunta(registros, campo) {
+    const vals = registros.map(r => r[campo]).filter(v => v > 0);
+    if (vals.length === 0) return 0;
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+
+  function scoreClass(val) {
+    if (val >= 4)   return 'score-alto';
+    if (val >= 3)   return 'score-medio';
+    return 'score-bajo';
+  }
+
+  function calcularYMostrar() {
+    const r = registrosFiltrados;
+    const total = r.length;
+
+    const iClaridad   = promedio(r, ['q1','q2','q3']);
+    const iAmbiente   = promedio(r, ['q4','q5','q6']);
+    const iEngagement = promedio(r, ['q7','q8']);
+
+    // Índices
+    document.getElementById('val-claridad').textContent    = total ? iClaridad.toFixed(2)   : '—';
+    document.getElementById('val-ambiente').textContent    = total ? iAmbiente.toFixed(2)   : '—';
+    document.getElementById('val-engagement').textContent  = total ? iEngagement.toFixed(2) : '—';
+    document.getElementById('sub-claridad').textContent    = `${total} responses · Q1 · Q2 · Q3`;
+    document.getElementById('sub-ambiente').textContent    = `${total} responses · Q4 · Q5 · Q6`;
+    document.getElementById('sub-engagement').textContent  = `${total} responses · Q7 · Q8`;
+
+    document.getElementById('bar-claridad').style.width    = total ? `${(iClaridad/5)*100}%`   : '0%';
+    document.getElementById('bar-ambiente').style.width    = total ? `${(iAmbiente/5)*100}%`   : '0%';
+    document.getElementById('bar-engagement').style.width  = total ? `${(iEngagement/5)*100}%` : '0%';
+
+    // Tabla por maestro+materia
+    renderTabla(r);
+
+    // Comentarios
+    const comentarios = r.filter(r => r.comentario && r.comentario.trim());
+    const cardComent  = document.getElementById('card-comentarios');
+    if (comentarios.length > 0) {
+      cardComent.style.display = 'block';
+      document.getElementById('lista-comentarios').innerHTML =
+        comentarios.map(c => `
+          <div class="comentario-item">
+            "${c.comentario}"
+            <div class="comentario-meta">${c.materia} · ${c.grado} · ${c.semestre}</div>
+          </div>`).join('');
+    } else {
+      cardComent.style.display = 'none';
+    }
+  }
+
+  function renderTabla(registros) {
+    // Agrupar por maestro + materia + grado
+    const grupos = {};
+    registros.forEach(r => {
+      const key = `${r.maestro}||${r.materia}||${r.grado}`;
+      if (!grupos[key]) grupos[key] = { maestro: r.maestro, materia: r.materia, grado: r.grado, filas: [] };
+      grupos[key].filas.push(r);
+    });
+
+    const tbody = document.getElementById('tabla-resultados');
+    const lista = Object.values(grupos);
+
+    if (lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">No data available for the selected filters.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = lista.map(g => {
+      const n    = g.filas.length;
+      const iC   = promedio(g.filas, ['q1','q2','q3']);
+      const iA   = promedio(g.filas, ['q4','q5','q6']);
+      const iE   = promedio(g.filas, ['q7','q8']);
+      const iG   = promedio(g.filas, ['q1','q2','q3','q4','q5','q6','q7','q8']);
+      return `
+        <tr>
+          <td><strong>${g.maestro}</strong></td>
+          <td>${g.materia}</td>
+          <td>${g.grado}</td>
+          <td style="color:#718096;">${n}</td>
+          <td><span class="score-pill ${scoreClass(iC)}">${iC.toFixed(2)}</span></td>
+          <td><span class="score-pill ${scoreClass(iA)}">${iA.toFixed(2)}</span></td>
+          <td><span class="score-pill ${scoreClass(iE)}">${iE.toFixed(2)}</span></td>
+          <td><span class="score-pill ${scoreClass(iG)}">${iG.toFixed(2)}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── DETALLE POR ÍNDICE ─────────────────────────────
+  function abrirDetalle(indice) {
+    detalleActivo = indice;
+    document.querySelectorAll('.indice-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.indice-card.${indice}`).classList.add('active');
+
+    const nombres = { claridad:'📘 Clarity — Detail by question', ambiente:'🌱 Environment — Detail by question', engagement:'🔥 Engagement — Detail by question' };
+    const colores = { claridad:'#3182ce', ambiente:'#38a169', engagement:'#ed8936' };
+    document.getElementById('detalle-titulo').textContent = nombres[indice];
+
+    const pregs = PREGUNTAS.filter(p => p.indice === indice);
+    const r     = registrosFiltrados;
+    const color = colores[indice];
+
+    const preguntasHTML = pregs.map((p, i) => {
+      const val   = promedioPregunta(r, p.id);
+      const count = r.filter(row => row[p.id] > 0).length;
+      const pct   = (val / 5) * 100;
+      const cClass = val >= 4 ? '#38a169' : val >= 3 ? '#ed8936' : '#e53e3e';
+      return `
+        <div class="pregunta-detalle">
+          <div class="ptexto"><strong>Q${i+1}.</strong> ${p.texto}</div>
+          <div class="pbarra-wrap">
+            <div class="pbarra-bg">
+              <div class="pbarra-fill" style="width:${r.length ? pct : 0}%; background:${cClass};"></div>
+            </div>
+            <div class="pvalor" style="color:${cClass};">${r.length ? val.toFixed(2) : '—'}</div>
+            <div class="pconteo">${count} resp.</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Gráfica de distribución de respuestas para las preguntas del índice
+    const labels   = pregs.map((p, i) => `Q${i+1}`);
+    const datasets = [1,2,3,4,5].map(score => ({
+      label: `${score}`,
+      data: pregs.map(p => r.filter(row => row[p.id] === score).length),
+      backgroundColor: score === 5 ? '#276749' : score === 4 ? '#38a169' :
+                       score === 3 ? '#ed8936' : score === 2 ? '#e53e3e' : '#9b2335',
+    }));
+
+    document.getElementById('detalle-contenido').innerHTML = `
+      ${preguntasHTML}
+      <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid #edf2f7;">
+        <p style="font-size:0.82rem; font-weight:600; color:#4a5568; margin-bottom:0.75rem;">Response distribution</p>
+        <div class="chart-wrapper">
+          <canvas id="chart-detalle"></canvas>
+        </div>
+      </div>`;
+
+    if (chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById('chart-detalle').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+
+    const panel = document.getElementById('detalle-panel');
+    panel.classList.add('visible');
+    panel.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  function cerrarDetalle() {
+    detalleActivo = null;
+    document.getElementById('detalle-panel').classList.remove('visible');
+    document.querySelectorAll('.indice-card').forEach(c => c.classList.remove('active'));
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  }
+
+  function cerrarSesion() {
+    sessionStorage.clear();
+    window.location.href = '../../index.html';
+  }
+
+  cargarDatos();
+</script>
+</body>
+</html>
