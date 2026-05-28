@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Escolar — Inicio</title>
+  <title>Portal Escolar</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -14,98 +14,238 @@
       align-items: center;
       justify-content: center;
     }
+
+    .wrapper { width: 100%; max-width: 480px; padding: 1rem; }
+
     .card {
-      background: white;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
+      background: white; border-radius: 16px; padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     }
-    .logo { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    h1 { font-size: 1.4rem; color: #1a202c; margin-bottom: 0.25rem; }
-    .subtitle { color: #718096; font-size: 0.9rem; margin-bottom: 2rem; }
-    .form-group { text-align: left; margin-bottom: 1rem; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; color: #4a5568; margin-bottom: 0.4rem; }
+
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo .icono { font-size: 2.8rem; }
+    .logo h1 { font-size: 1.4rem; color: #1a202c; margin-top: 0.5rem; font-weight: 600; }
+    .logo p  { font-size: 0.85rem; color: #718096; margin-top: 0.25rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 0.4rem; }
     input {
       width: 100%; padding: 0.65rem 1rem;
       border: 1px solid #cbd5e0; border-radius: 8px;
-      font-size: 1rem; outline: none; transition: border-color 0.2s;
+      font-size: 0.95rem; outline: none; transition: border-color 0.2s;
     }
     input:focus { border-color: #4299e1; }
-    button {
+
+    .btn-ingresar {
       width: 100%; padding: 0.75rem;
       background: #3182ce; color: white;
       border: none; border-radius: 8px;
       font-size: 1rem; font-weight: 600;
-      cursor: pointer; margin-top: 0.5rem;
-      transition: background 0.2s;
+      cursor: pointer; margin-top: 0.25rem;
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      transition: background 0.2s;
     }
-    button:hover { background: #2b6cb0; }
-    button:disabled { background: #a0aec0; cursor: not-allowed; }
-    .error { color: #e53e3e; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
-    .version { margin-top: 2rem; font-size: 0.75rem; color: #a0aec0; }
+    .btn-ingresar:hover { background: #2b6cb0; }
+    .btn-ingresar:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    .error {
+      background: #fff5f5; border: 1px solid #fc8181;
+      border-radius: 8px; padding: 0.65rem 1rem;
+      color: #c53030; font-size: 0.85rem;
+      margin-top: 0.75rem; display: none;
+    }
+
     .spinner {
       width: 16px; height: 16px;
       border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Portal de accesos */
+    .portal { display: none; }
+    .portal-header {
+      text-align: center; margin-bottom: 1.75rem;
+    }
+    .portal-header .bienvenida {
+      font-size: 0.85rem; color: #718096; margin-bottom: 0.25rem;
+    }
+    .portal-header .nombre {
+      font-size: 1.2rem; font-weight: 600; color: #1a202c;
+    }
+    .portal-header .rol-badge {
+      display: inline-block; margin-top: 0.4rem;
+      padding: 0.2rem 0.75rem; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .rol-badge.maestro  { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
+    .rol-badge.advisor  { background: #faf5ff; color: #6b46c1; border: 1px solid #d6bcfa; }
+    .rol-badge.admin    { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+    .rol-badge.alumno   { background: #fffaf0; color: #c05621; border: 1px solid #fbd38d; }
+
+    .accesos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1.5rem; }
+    .acceso-btn {
+      background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 1.25rem 1rem; text-align: center; cursor: pointer;
+      transition: all 0.2s; text-decoration: none; display: block;
+    }
+    .acceso-btn:hover { background: #ebf8ff; border-color: #90cdf4; transform: translateY(-1px); }
+    .acceso-btn .acc-icono { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .acceso-btn .acc-titulo { font-size: 0.9rem; font-weight: 600; color: #2d3748; margin-bottom: 0.2rem; }
+    .acceso-btn .acc-sub    { font-size: 0.75rem; color: #a0aec0; }
+
+    .acceso-btn.full { grid-column: 1 / -1; }
+
+    .btn-cerrar {
+      width: 100%; padding: 0.6rem;
+      background: none; border: 1px solid #e2e8f0;
+      border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; color: #718096;
+      transition: background 0.15s;
+    }
+    .btn-cerrar:hover { background: #f7fafc; }
+
+    .version { text-align: center; margin-top: 1.5rem; font-size: 0.72rem; color: #cbd5e0; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">🏫</div>
-    <h1>Sistema de Intervención</h1>
-    <p class="subtitle">Ingresa tus credenciales para continuar</p>
+  <div class="wrapper">
+    <div class="card">
 
-    <div class="form-group">
-      <label for="usuario">Usuario</label>
-      <input type="text" id="usuario" placeholder="usuario" autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label for="password">Contraseña</label>
-      <input type="password" id="password" placeholder="••••••••">
-    </div>
+      <!-- LOGIN -->
+      <div id="seccion-login">
+        <div class="logo">
+          <div class="icono">🏫</div>
+          <h1>Portal Escolar</h1>
+          <p>Sistema de gestión académica</p>
+        </div>
 
-    <button id="btn-login" onclick="iniciarSesion()">
-      <div class="spinner" id="spinner"></div>
-      <span id="btn-texto">Ingresar</span>
-    </button>
-    <p class="error" id="error-msg">Usuario o contraseña incorrectos.</p>
-    <p class="version">v0.2 — conectado a Google Sheets</p>
+        <div class="form-group">
+          <label for="usuario">Usuario</label>
+          <input type="text" id="usuario" placeholder="Tu usuario escolar" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <button class="btn-ingresar" id="btn-ingresar" onclick="iniciarSesion()">
+          <div class="spinner" id="spinner"></div>
+          <span id="btn-texto">Ingresar</span>
+        </button>
+        <div class="error" id="error-msg"></div>
+      </div>
+
+      <!-- PORTAL DE ACCESOS -->
+      <div id="seccion-portal" class="portal">
+        <div class="portal-header">
+          <div class="bienvenida">Welcome back,</div>
+          <div class="nombre" id="portal-nombre"></div>
+          <span class="rol-badge" id="portal-rol-badge"></span>
+        </div>
+
+        <div class="accesos" id="accesos-container"></div>
+
+        <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
+      </div>
+
+      <div class="version">v1.0 · Sistema Escolar</div>
+    </div>
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycby1GqAiy__M9gKlcKUvDFvCRmACQX7A-SJCGwo-5AOY01387MNqbbAdst_bgQ-W1p0O/exec';
+    const API_URL = 'TU_URL_AQUI';
+
+    // Definir accesos por rol
+    const ACCESOS = {
+      maestro: [
+        {
+          icono: '📋',
+          titulo: 'Intervención',
+          sub: 'Reportar y dar seguimiento',
+          url: 'intervencion/maestro/index.html',
+          full: false
+        },
+        {
+          icono: '📊',
+          titulo: 'Resultados',
+          sub: 'Ver mis evaluaciones',
+          url: 'evaluacion-docente/resultados/index.html',
+          full: false
+        }
+      ],
+      advisor: [
+        {
+          icono: '📋',
+          titulo: 'Intervención',
+          sub: 'Gestionar casos y correos',
+          url: 'intervencion/advisor/index.html',
+          full: false
+        },
+        {
+          icono: '📊',
+          titulo: 'Evaluación docente',
+          sub: 'Ver resultados',
+          url: 'evaluacion-docente/resultados/index.html',
+          full: false
+        }
+      ],
+      admin: [
+        {
+          icono: '⚙️',
+          titulo: 'Administración',
+          sub: 'Usuarios, grados y materias',
+          url: 'intervencion/admin/index.html',
+          full: false
+        },
+        {
+          icono: '📊',
+          titulo: 'Evaluación docente',
+          sub: 'Resultados y análisis',
+          url: 'evaluacion-docente/resultados/index.html',
+          full: false
+        }
+      ],
+      alumno: [
+        {
+          icono: '📝',
+          titulo: 'Evaluación docente',
+          sub: 'Evalúa a tus maestros',
+          url: 'evaluacion-docente/index.html',
+          full: true
+        }
+      ]
+    };
+
+    // Verificar si ya hay sesión activa
+    const usuarioGuardado = sessionStorage.getItem('usuario');
+    const rolGuardado     = sessionStorage.getItem('rol');
+    const nombreGuardado  = sessionStorage.getItem('nombre');
+    if (usuarioGuardado && rolGuardado) {
+      mostrarPortal(rolGuardado, nombreGuardado || usuarioGuardado);
+    }
 
     async function iniciarSesion() {
       const usuario  = document.getElementById('usuario').value.trim();
       const password = document.getElementById('password').value;
-      const errorMsg = document.getElementById('error-msg');
-      const btn      = document.getElementById('btn-login');
+      const errorDiv = document.getElementById('error-msg');
+      const btn      = document.getElementById('btn-ingresar');
       const spinner  = document.getElementById('spinner');
-      const btnTexto = document.getElementById('btn-texto');
+      const texto    = document.getElementById('btn-texto');
 
       if (!usuario || !password) {
-        errorMsg.textContent = 'Por favor ingresa usuario y contraseña.';
-        errorMsg.style.display = 'block';
-        return;
+        errorDiv.textContent = 'Por favor ingresa tu usuario y contraseña.';
+        errorDiv.style.display = 'block'; return;
       }
 
-      // Mostrar cargando
       btn.disabled = true;
       spinner.style.display = 'block';
-      btnTexto.textContent = 'Verificando...';
-      errorMsg.style.display = 'none';
+      texto.textContent = 'Verificando...';
+      errorDiv.style.display = 'none';
 
       try {
-        const res = await fetch(API_URL, {
+        const res  = await fetch(API_URL, {
           method: 'POST',
           body: JSON.stringify({ accion: 'login', usuario, password })
         });
@@ -113,23 +253,67 @@
 
         if (data.ok) {
           sessionStorage.setItem('usuario', usuario);
-          sessionStorage.setItem('rol', data.rol);
-          sessionStorage.setItem('nombre', data.nombre);
-          if (data.rol === 'maestro')  window.location.href = 'maestro/index.html';
-          if (data.rol === 'advisor')  window.location.href = 'advisor/index.html';
-          if (data.rol === 'admin')    window.location.href = 'admin/index.html';
+          sessionStorage.setItem('rol',     data.rol);
+          sessionStorage.setItem('nombre',  data.nombre);
+
+          // Si es alumno también guardar datos de evaluación
+          if (data.rol === 'alumno') {
+            const resA = await fetch(API_URL, {
+              method: 'POST',
+              body: JSON.stringify({ accion: 'obtenerAlumnos' })
+            }).then(r => r.json());
+            const alumno = (resA.alumnos || []).find(a =>
+              a.correo_alumno === usuario ||
+              `${a.nombre}.${a.apellido}`.toLowerCase() === usuario.toLowerCase()
+            );
+            sessionStorage.setItem('eval_grado',   alumno ? alumno.grado : '');
+            sessionStorage.setItem('eval_nombre',  alumno ? `${alumno.nombre} ${alumno.apellido}` : data.nombre);
+            sessionStorage.setItem('eval_usuario', usuario);
+            sessionStorage.setItem('eval_rol',     data.rol);
+          }
+
+          mostrarPortal(data.rol, data.nombre);
         } else {
-          errorMsg.textContent = 'Usuario o contraseña incorrectos.';
-          errorMsg.style.display = 'block';
+          errorDiv.textContent = 'Usuario o contraseña incorrectos.';
+          errorDiv.style.display = 'block';
         }
-      } catch(err) {
-        errorMsg.textContent = 'Error de conexión. Intenta de nuevo.';
-        errorMsg.style.display = 'block';
+      } catch(e) {
+        errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+        errorDiv.style.display = 'block';
       }
 
       btn.disabled = false;
       spinner.style.display = 'none';
-      btnTexto.textContent = 'Ingresar';
+      texto.textContent = 'Ingresar';
+    }
+
+    function mostrarPortal(rol, nombre) {
+      document.getElementById('seccion-login').style.display   = 'none';
+      document.getElementById('seccion-portal').style.display  = 'block';
+
+      document.getElementById('portal-nombre').textContent = nombre;
+
+      const badge = document.getElementById('portal-rol-badge');
+      const etiquetas = { maestro:'Teacher', advisor:'Advisor', admin:'Administrator', alumno:'Student' };
+      badge.textContent = etiquetas[rol] || rol;
+      badge.className   = `rol-badge ${rol}`;
+
+      const accesos    = ACCESOS[rol] || [];
+      const contenedor = document.getElementById('accesos-container');
+      contenedor.innerHTML = accesos.map(a => `
+        <a href="${a.url}" class="acceso-btn ${a.full ? 'full' : ''}">
+          <div class="acc-icono">${a.icono}</div>
+          <div class="acc-titulo">${a.titulo}</div>
+          <div class="acc-sub">${a.sub}</div>
+        </a>`).join('');
+    }
+
+    function cerrarSesion() {
+      sessionStorage.clear();
+      document.getElementById('seccion-login').style.display  = 'block';
+      document.getElementById('seccion-portal').style.display = 'none';
+      document.getElementById('usuario').value  = '';
+      document.getElementById('password').value = '';
     }
 
     document.addEventListener('keypress', e => {
